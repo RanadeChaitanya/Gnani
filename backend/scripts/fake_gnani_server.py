@@ -19,6 +19,14 @@ from websockets.datastructures import Headers
 from websockets.http11 import Request, Response
 
 
+# Offline dev / e2e: distinct per-language lines so two fake speakers never look like echoes of each other.
+DEMO_LINES = {
+    "en-IN": ["Namaste, mujhe do kilo atta chahiye", "Aur ek litre sarson ka tel bhi", "Kal subah dus baje bhej dena"],
+    "mr-IN": ["हो, ₹२५० होतील", "उद्या सकाळी दहा वाजता पाठवतो", "धन्यवाद, नमस्कार"],
+    "hi-IN": ["जी, कल सुबह दस बजे का समय ठीक है", "डॉक्टर शर्मा से मिलना है", "धन्यवाद"],
+}
+
+
 def _ts() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -54,7 +62,10 @@ class FakeGnani:
 
     def _text(self, lang: str, n: int) -> str:
         q = self.scripts.get(lang) or self.scripts.get("default")
-        return q.popleft() if q else f"fake transcript {n}"
+        if q:
+            return q.popleft()
+        lines = DEMO_LINES.get(lang)
+        return lines[n % len(lines)] if lines else f"fake transcript {n}"
 
     def _process_request(self, conn: ServerConnection, req: Request) -> Response | None:
         def reject(status: HTTPStatus, msg: str) -> Response:
