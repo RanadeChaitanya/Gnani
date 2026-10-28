@@ -60,6 +60,13 @@ class FakeGnani:
         for c in list(self._conns):
             await c.close(1011, "injected drop")
 
+    def _peek(self, lang: str, n: int) -> str:
+        q = self.scripts.get(lang) or self.scripts.get("default")
+        if q:
+            return q[0]
+        lines = DEMO_LINES.get(lang)
+        return lines[n % len(lines)] if lines else f"fake transcript {n}"
+
     def _text(self, lang: str, n: int) -> str:
         q = self.scripts.get(lang) or self.scripts.get("default")
         if q:
@@ -92,6 +99,7 @@ class FakeGnani:
         opened = time.monotonic()
         speech = silence = 0
         index = 0
+        partials = h.get("x-partials") == "true"
         try:
             while True:
                 timeout = None
@@ -122,8 +130,14 @@ class FakeGnani:
                 a = array("h", msg)
                 loud = sum(x * x for x in a) / len(a) > self.energy**2
                 if loud:
+                    if speech == 0:  # the live API announces speech onset (undocumented, seen 2026-10-28)
+                        await ws.send(json.dumps({"type": "speech_start", "timestamp": _ts()}))
                     speech += 1
                     silence = 0
+                    if partials and speech % 8 == 0:  # ~every 256 ms, a growing prefix of the line
+                        words = self._peek(h["lang_code"], index).split()
+                        await ws.send(json.dumps({"type": "partial_transcript", "timestamp": _ts(),
+                                                  "text": " ".join(words[: max(1, speech // 8)])}))
                 elif speech:
                     silence += 1
                     if silence >= silence_frames:
@@ -132,7 +146,7 @@ class FakeGnani:
                         await ws.send(json.dumps({"type": "processing", "timestamp": _ts()}))
                         await asyncio.sleep(self.latency_ms / 1000)
                         await ws.send(json.dumps({
-                            "type": "transcript", "timestamp": _ts(), "text": self._text(h["lang_code"], index),
+                            "type": "final_transcript" if partials else "transcript", "timestamp": _ts(), "text": self._text(h["lang_code"], index),
                             "audio_duration_ms": dur, "segment_id": str(uuid.uuid4()), "segment_index": index,
                             "latency": self.latency_ms}))
                         self.transcripts_sent += 1

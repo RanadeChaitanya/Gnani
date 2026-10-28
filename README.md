@@ -69,6 +69,8 @@ docker compose up --build        # one container, one origin: http://localhost:8
 | `CALL_AUDIO_PROVIDER` | `livekit` | `livekit` or `none` |
 | `STT_VAD_THRESHOLD` / `STT_MIN_SILENCE_MS` / `STT_MIN_SPEECH_MS` / `STT_MIN_SEGMENT_MS` / `STT_MAX_SPEECH_S` | 0.5 / 700 / 100 / 120 / off | Gnani VAD headers |
 | `STT_FORMAT_DEFAULT` | `transcribe` | ITN on (verbatim is used automatically with word boosting) |
+| `STT_PARTIALS` | true | Word-by-word live captions (verified against the live API) |
+| `LLM_BUDGET_USD` | 0.20 | Hard cap on LLM spend across app, smoke tests and eval (ledger `data/llm_spend.json`) |
 | `MAX_STT_SECONDS_PER_ROOM` | 1800 | Credit guard: capture stops with a clear message |
 | `SERVER_RETENTION_HOURS` | 24 | Server text retention |
 | `DEMO_MODE` | true | Shows the "synthetic data only" banner |
@@ -96,7 +98,7 @@ cd frontend && npm run build && npx playwright test   # two browser "phones" wit
 
 ## Limitations
 - App-to-app VoIP call, **not** phone-network calls.
-- Captions arrive per utterance (after a ~0.7 s pause), not word by word.
+- Live captions type out word by word (Gnani `x-partials`); the final, ordered caption lands ~0.7 s after the speaker pauses.
 - Phone browsers may suspend the mic in the background; Saar pauses and asks you to keep it open.
 - Loudspeaker echo can duplicate captions; earphones are recommended (an echo heuristic hides likely duplicates).
 - The evaluation uses synthetic TTS audio and simulated noise; small n.

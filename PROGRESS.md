@@ -11,6 +11,21 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 | Demo languages | **Hinglish (`en-IN`) + Marathi (`mr-IN`) + English**. Scenarios: kirana order, appointment booking (defaults). |
 | Team | Two members; handles to collect at Checkpoint D. |
 
+## Phase 0 live findings (2026-10-28, real keys)
+- TTS (Timbre v2.5: Kaveri en-IN, Nalini hi-IN, Zahira mr-IN) ✅ — but WAV headers carry streaming sizes (0xFFFFFFFF); `gnani/tts_client.fix_wav_header` rewrites them.
+- STT REST ✅ en/hi/mr; ITN active (`दस बजे`→`10:00`, `दोन`→`2`).
+- STT WebSocket ✅ en/hi/mr, Gnani latency 171–298 ms (direct), 86–121 ms through our proxy in the live room check.
+- **Live API sends an undocumented `speech_start`** at speech onset and did **not** send the documented `processing`. Code treats either as "segment open"; hard rotation now triggers right after a `transcript`.
+- **Concurrency: one key holds 2 concurrent sockets** ✅ (two-person room needs no second key).
+- **Idle: socket still open after 60 s with no audio** ✅ (mute/pause keeps the connection).
+- **`x-partials: true` works** ✅: `partial_transcript` (growing prefix) during speech, and the final arrives as **`final_transcript`** (not `transcript`). Now default on (`STT_PARTIALS=true`); partials are broadcast to both phones as live typing bubbles; finals normalized to `transcript`.
+- DeepSeek (`deepseek-chat`, JSON mode) ✅ schema-valid note first try.
+- Full live room check (2 participants, en-IN + mr-IN, real Gnani + real DeepSeek + LiveKit token): ordered segments, 15 partials, final note ready, 0 faithfulness flags, 0 server errors.
+- Credit-meter probe (does muted silence bill?) not measurable from here — we never send silence anyway.
+
+## LLM spend cap (user instruction: never exceed $0.20 on DeepSeek)
+`LLM_BUDGET_USD=0.20`, ledger `data/llm_spend.json` shared by app/smoke/eval. Each call is refused **before** the request unless spent + worst case (input chars/2 tokens + full `max_tokens` output) at deliberately high prices ($0.60/M in, $2.20/M out) fits. Calls are serialized per process. Spent so far: **$0.0027** (2 notes). Budget per note ≈ $0.002–0.004 → E4 (36 notes) fits; keep ≥ $0.05 for the demo.
+
 ## Doc discrepancies (docs win)
 - `x-format` default is `verbatim` in docs (spec implies transcribe); we send `transcribe` explicitly unless bias words are set.
 - Docs default `x-vad-threshold` 0.7 / `x-min-silence-ms` 500; we send spec values 0.5 / 700 explicitly.
@@ -29,7 +44,7 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 
 ## Status
 - [x] Phase 0 skeleton, `.env.example`, `.env` (random JWT secret), docs read, `scripts/smoke.py` written.
-- [ ] Phase 0 smoke runs + probes (concurrency / idle / partials / credit meter) — **blocked on keys in `.env`**.
+- [x] Phase 0 smoke runs + probes — all green with real keys (see "Phase 0 live findings").
 - [x] Phase 1 backend core: config, redacting JSON logs, SQLModel tables, JWT, rate limiter, header builder, pacer, rotating/reconnecting upstream, fake Gnani server, room hub (reorder + echo dedupe), STT proxy, rooms/consent API, summarizer + faithfulness, retention. **29 tests green** (`pytest`).
   - Pacer ±5 ms per-frame jitter is asserted only on Linux; Windows' asyncio timer has a 15.6 ms tick (mean cadence still asserted). Verify in Docker.
 
@@ -46,12 +61,12 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 - Echo heuristic can only hide the later segment of a pair (comment in code).
 
 ## Next (blocked on human)
-1. Keys in `.env` → `python backend/scripts/smoke.py all` (TTS → REST → WS → probes → LLM). Record concurrency / idle / partials results here.
+1. ~~Keys + smoke~~ done.
 2. Checkpoint B: LiveKit Cloud creds + HTTPS route for phones (cloudflared) → real two-phone test (`docs/DEVICE_TEST.md`).
 3. Checkpoint C: eval budget, real clips (optional) → `make_audio.py`, `run_eval.py`, `report.py`.
 4. Start Docker Desktop → `docker compose up --build`; run pacer test in Linux container for the ±5 ms check.
 5. Checkpoint D: deploy target, repo URL, handles → README team table, SUBMISSION.md.
 
 ## Open questions
-- Concurrent STT sockets per key, idle timeout, partials, billing of silence → `smoke.py probe`.
+- Billing of silence: unknown (we never send it).
 - Hindi notice wording needs a human review before shipping (spec §13.2).

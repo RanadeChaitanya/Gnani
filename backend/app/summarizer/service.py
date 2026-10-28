@@ -12,7 +12,7 @@ from ..db import session
 from ..models import Note, Participant, Room, Segment, Usage
 from ..ws.room_hub import get_hub
 from . import faithfulness, prompts
-from .providers import LLMProvider, make_provider
+from .providers import BudgetExceeded, LLMProvider, make_provider
 from .schema import NoteContent, json_schema
 
 log = logging.getLogger("saar.notes")
@@ -92,6 +92,9 @@ async def _generate(note_id: str, room: Room) -> None:
             raw, u = await p.generate_note(system, user, max_tokens=st.note_max_tokens, timeout_s=60)
             tokens = {k: tokens[k] + u.get(k, 0) for k in tokens}
             content = NoteContent.model_validate(raw)
+            break
+        except BudgetExceeded:
+            err = "The note budget for this prototype is used up; the transcript is kept."
             break
         except ValidationError as e:
             err = "The note did not match the expected format."

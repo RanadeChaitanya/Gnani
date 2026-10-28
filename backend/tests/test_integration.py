@@ -114,6 +114,10 @@ async def test_two_speakers_ordered_captions_and_notes(server: str, fake: FakeGn
             assert segs[1]["text"] == "हो, ₹२५० होतील"
             assert not any(s["possible_echo"] for s in segs)
         assert [m["text"] for m in got_a if m["type"] == "transcript"][0].startswith("Namaste")
+        # live word-by-word partials reach both phones; finals arrive as final_transcript upstream
+        assert any(e["participant_id"] == guest["participant_id"] for e in la.of("partial"))
+        assert any(e["participant_id"] == host["participant_id"] for e in lb.of("partial"))
+        assert fake.headers_seen[0].get("x-partials") == "true"
         # headers reached the upstream exactly as specified
         assert {h["lang_code"] for h in fake.headers_seen} == {"en-IN", "mr-IN"}
         assert fake.bad_frames == 0

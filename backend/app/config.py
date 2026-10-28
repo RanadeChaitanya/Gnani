@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     stt_min_segment_ms: int = 120
     stt_max_speech_s: float | None = None
     stt_format_default: str = "transcribe"
-    stt_partials: bool = False
+    stt_partials: bool = True  # verified live 2026-10-28: partial_transcript + final_transcript
     max_stt_seconds_per_room: float = 1800
     gnani_ws_url_override: str = ""
 
@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     llm_model: str = "deepseek-chat"
     openai_compat_base_url: str = "https://api.deepseek.com"
     openai_compat_api_key: str = ""
+    # Hard spend cap across app + smoke + eval (ledger in data/llm_spend.json). Prices deliberately above
+    # DeepSeek's list prices so the estimate can only over-count.
+    llm_budget_usd: float = 0.20
+    llm_price_in_per_m: float = 0.60
+    llm_price_out_per_m: float = 2.20
+    llm_ledger_path: str = str(ROOT / "data" / "llm_spend.json")
     max_transcript_chars: int = 60000
     note_max_tokens: int = 1500
 

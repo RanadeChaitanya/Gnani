@@ -51,13 +51,13 @@ class SttSession:
 
     async def _on_event(self, msg: dict[str, Any]) -> None:
         kind = msg.get("type")
-        if kind == "processing":
+        if kind in ("processing", "speech_start"):  # both drive the "…speaking" indicator
             await self._send({"type": "processing"})
             await self.hub.broadcast({"type": "processing", "participant_id": self.p.id})
         elif kind in ("transcript", "partial_transcript"):
             text = (msg.get("text") or "").strip()
             if kind == "partial_transcript":
-                await self._send({"type": "partial", "text": text})
+                await self.hub.broadcast({"type": "partial", "participant_id": self.p.id, "text": text})
                 return
             if not text:
                 return

@@ -313,3 +313,20 @@ def test_redaction() -> None:
     rec = logging.LogRecord("t", logging.INFO, "", 0, "connect", None, None)
     rec.data = {"headers": {"x-api-key-id": "k3y"}}
     assert "k3y" not in JsonFormatter().format(rec)
+
+
+# ---------------- LLM spend cap ----------------
+
+
+async def test_llm_budget_refuses_before_any_request(tmp_path: "__import__('pathlib').Path") -> None:
+    from app.summarizer.providers import BudgetExceeded, OpenAICompatProvider, SpendLedger
+
+    ledger = SpendLedger(str(tmp_path / "spend.json"), 0.20, 0.60, 2.20)
+    ledger.record(100_000, 50_000)  # 0.06 + 0.11 = $0.17
+    assert abs(ledger.spent() - 0.17) < 1e-9
+    # worst case of one more call (1,500 output tokens = $0.0033 + input) would exceed $0.20 only near the cap
+    ledger.record(0, 13_000)  # +$0.0286 -> $0.1986
+    p = OpenAICompatProvider("http://127.0.0.1:9", "k", "m", ledger)  # port 9: any request would fail loudly
+    with pytest.raises(BudgetExceeded):
+        await p.generate_note("s" * 2000, "u", max_tokens=1500, timeout_s=1)
+    assert abs(ledger.spent() - 0.1986) < 1e-9  # refused call cost nothing

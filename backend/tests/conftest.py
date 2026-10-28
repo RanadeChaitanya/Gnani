@@ -13,7 +13,7 @@ sys.path.insert(0, str(BACKEND / "scripts"))
 
 os.environ.update({
     "LLM_PROVIDER": "mock", "CALL_AUDIO_PROVIDER": "none", "GNANI_API_KEY": "test-key", "JWT_SECRET": "test-secret-that-is-at-least-32-bytes-long",
-    "LIVEKIT_URL": "", "RATE_LIMIT_PER_MIN": "1000", "ECHO_DEDUPE": "true",
+    "LIVEKIT_URL": "", "RATE_LIMIT_PER_MIN": "1000", "ECHO_DEDUPE": "true", "STT_PARTIALS": "true",
 })
 
 from app import db  # noqa: E402

@@ -40,6 +40,7 @@ function Room({ code }: { code: string }) {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [prov, setProv] = useState<Provisional[]>([]);
   const [speaking, setSpeaking] = useState<Record<string, number>>({});
+  const [partials, setPartials] = useState<Record<string, string>>({});
   const [upstream, setUpstream] = useState("");
   const [muted, setMuted] = useState(false);
   const [hidden, setHidden] = useState(document.visibilityState === "hidden");
@@ -104,9 +105,14 @@ function Room({ code }: { code: string }) {
       case "processing":
         setSpeaking((s) => ({ ...s, [m.participant_id]: Date.now() }));
         break;
+      case "partial":
+        setPartials((p) => ({ ...p, [m.participant_id]: m.text }));
+        setSpeaking((s) => ({ ...s, [m.participant_id]: Date.now() }));
+        break;
       case "segment":
         setSegments((s) => [...s.filter((x) => x.seq !== m.seq), m as Segment].sort((a, b) => a.seq - b.seq));
         setProv((p) => p.filter((x) => x.id !== m.upstream_segment_id));
+        setPartials((p) => ({ ...p, [m.participant_id]: "" }));
         setSpeaking((s) => ({ ...s, [m.participant_id]: 0 }));
         break;
       case "note_status":
@@ -188,8 +194,7 @@ function Room({ code }: { code: string }) {
         stats.current.gnani.push(m.latency_ms);
         if (stats.current.lastLoud) stats.current.eos.push(Date.now() - stats.current.lastLoud);
         setProv((p) => [...p, { id: m.upstream_segment_id, text: m.text, latency_ms: m.latency_ms }]);
-      } else if (m.type === "partial") {
-        setSpeaking((s) => ({ ...s, [me]: Date.now() }));
+        setPartials((p) => ({ ...p, [me]: "" }));
       } else if (m.type === "upstream_status") {
         setUpstream(m.state);
         if (m.state === "reconnecting") stats.current.reconnects++;
@@ -322,6 +327,12 @@ function Room({ code }: { code: string }) {
         <div key={p.id} className="bubble mine prov">
           <div className="who"><span>{nameOf(me)} ·</span><span>{p.latency_ms} ms</span></div>
           <div dir="auto">{p.text}</div>
+        </div>
+      ))}
+      {Object.entries(partials).filter(([, txt]) => txt).map(([pid, txt]) => (
+        <div key={`p-${pid}`} className={`bubble prov ${pid === me ? "mine" : ""}`} aria-hidden="true">
+          <div className="who"><span>{nameOf(pid)} …</span></div>
+          <div dir="auto">{txt}</div>
         </div>
       ))}
       {others.length > 0 && <p className="muted">{others.join(", ")} {t("speaking")}</p>}

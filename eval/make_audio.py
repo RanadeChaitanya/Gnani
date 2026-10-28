@@ -6,16 +6,9 @@ import asyncio
 
 import httpx
 
-from common import AUDIO, SR, S, clip_path, dialogues
+from common import AUDIO, S, clip_path, dialogues
 
-
-async def synth(c: httpx.AsyncClient, text: str, voice: str, lang: str) -> bytes:
-    r = await c.post(f"{S.gnani_base_url}/api/v1/tts/inference", headers={"X-API-Key-ID": S.gnani_api_key},
-                     json={"text": text, "voice": voice, "model": "timbre-v2.5", "language": lang,
-                           "audio_config": {"sample_rate": SR, "num_channels": 1, "sample_width": 2,
-                                            "encoding": "linear_pcm", "container": "wav"}})
-    r.raise_for_status()
-    return r.content
+from app.gnani.tts_client import synthesize  # noqa: E402
 
 
 async def main() -> None:
@@ -27,7 +20,7 @@ async def main() -> None:
                 return
             spk = d["speakers"][turn["speaker"]]
             async with sem:
-                data = await synth(c, turn["text"], spk["voice"], spk["tts_lang"])
+                data = await synthesize(c, S, turn["text"], spk["voice"], spk["tts_lang"])
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_bytes(data)
             print("tts", p.relative_to(AUDIO))

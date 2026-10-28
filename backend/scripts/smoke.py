@@ -21,6 +21,7 @@ import websockets
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.config import ROOT, get_settings  # noqa: E402
 from app.gnani.stt_client import FRAME_BYTES, build_headers  # noqa: E402
+from app.gnani.tts_client import synthesize  # noqa: E402
 from app.summarizer import prompts  # noqa: E402
 from app.summarizer.providers import make_provider  # noqa: E402
 from app.summarizer.schema import NoteContent, json_schema  # noqa: E402
@@ -44,14 +45,10 @@ async def tts() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     async with httpx.AsyncClient(timeout=60) as c:
         for name, (lang, voice, text) in SAMPLES.items():
-            r = await c.post(f"{S.gnani_base_url}/api/v1/tts/inference", headers={"X-API-Key-ID": S.gnani_api_key},
-                             json={"text": text, "voice": voice, "model": "timbre-v2.5", "language": lang,
-                                   "audio_config": {"sample_rate": 16000, "num_channels": 1, "sample_width": 2,
-                                                    "encoding": "linear_pcm", "container": "wav"}})
-            r.raise_for_status()
+            data = await synthesize(c, S, text, voice, lang)
             p = OUT / f"smoke_{name}.wav"
-            p.write_bytes(r.content)
-            with wave.open(io.BytesIO(r.content)) as w:
+            p.write_bytes(data)
+            with wave.open(io.BytesIO(data)) as w:
                 print(f"TTS {name}: {p.name} {w.getframerate()} Hz, {w.getnframes() / w.getframerate():.1f} s")
 
 
@@ -129,6 +126,7 @@ async def llm() -> None:
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")  # Windows console: print Devanagari
     cmd = sys.argv[1] if len(sys.argv) > 1 else "all"
     steps = {"tts": tts, "rest": rest, "ws": ws, "probe": probe, "llm": llm}
     for name in (steps if cmd == "all" else [cmd]):

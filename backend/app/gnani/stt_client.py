@@ -200,13 +200,16 @@ class GnaniStream:
                 if isinstance(raw, bytes):
                     continue
                 msg = json.loads(raw)
-                if msg.get("type") == "processing":
-                    self.pending[ws] = self.pending.get(ws, 0) + 1
-                    # past the hard deadline: switch right at this end-of-speech so no utterance is split
+                kind = msg.get("type")
+                if kind == "final_transcript":  # with x-partials on, finals arrive under this name
+                    msg["type"] = kind = "transcript"
+                if kind in ("speech_start", "processing"):
+                    self.pending[ws] = 1  # segment open (live API sends speech_start; docs describe processing)
+                elif kind == "transcript":
+                    self.pending[ws] = 0
+                    # past the hard deadline: switch right after an utterance closes so none is split
                     if ws is self.ws and time.monotonic() - self.opened_at >= self.hard_rotate_s:
                         self._spawn(self.rotate())
-                elif msg.get("type") == "transcript":
-                    self.pending[ws] = max(0, self.pending.get(ws, 0) - 1)
                 await self.on_event(msg)
         except websockets.ConnectionClosed:
             pass
