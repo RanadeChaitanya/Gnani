@@ -11,6 +11,16 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 | Demo languages | **Hinglish (`en-IN`) + Marathi (`mr-IN`) + English**. Scenarios: kirana order, appointment booking (defaults). |
 | Team | Two members; handles to collect at Checkpoint D. |
 
+## >>> CURRENT TASK (v3) — resume here if the session was cut off <<<
+User feedback after v2 phone test (2026-10-28): Hindi recognition poor; UI cluttered; note should show *understanding* (structured), not translations; target near-100 % accuracy; say honestly whether limits are Gnani's or ours.
+Evidence: test rooms 9L7E8R, LFFATE (backend/data/saar.db). Mics healthy. Errors: "dais"=das, "har bhara daur"=arhar dal?, "sandee"=santre/suji?, crosstalk (both phones in one room heard both voices → duplicate sugar 8 kg / 50 kg).
+Steps (mark [x] as done, commit after each):
+- [ ] 1. Probe Gnani /stt/v4 (stream + REST) vs v3 on Hinglish clips; pick the more accurate.
+- [ ] 2. Bigger grocery/Hindi vocabulary (dal types, flours, fruits, veg, units) + number aliases (dais/dus/das).
+- [ ] 3. DeepSeek v3 prompt: understand intent; correct misheard product names to likely words with `heard_as`; merge duplicates/crosstalk; no translation-only output.
+- [ ] 4. Minimal UI: note = title, 1-line summary, items table, totals, when/where, one Share button; details hidden.
+- [ ] 5. Tests green, rebuild, restart backend + tunnel (tunnel URL changes!), live check, commit, report.
+
 ## Phase 0 live findings (2026-10-28, real keys)
 - TTS (Timbre v2.5: Kaveri en-IN, Nalini hi-IN, Zahira mr-IN) ✅ — but WAV headers carry streaming sizes (0xFFFFFFFF); `gnani/tts_client.fix_wav_header` rewrites them.
 - STT REST ✅ en/hi/mr; ITN active (`दस बजे`→`10:00`, `दोन`→`2`).
