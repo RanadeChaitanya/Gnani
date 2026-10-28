@@ -36,7 +36,8 @@ def transcript_lines(segments: list[dict[str, Any]], max_chars: int) -> str:
     text = "\n".join(lines)
     if len(text) <= max_chars:
         return text
-    head, tail = [], []
+    head: list[str] = []
+    tail: list[str] = []
     budget = max_chars // 2
     for ln in lines:
         if sum(len(x) + 1 for x in head) + len(ln) > budget:

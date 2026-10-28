@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+.venv
+**/.venv
+.env
+data
+backend/app/static
+**/__pycache__
+.git
+frontend/test-results
+eval/audio

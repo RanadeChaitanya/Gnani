@@ -22,8 +22,8 @@ def purge(cutoff: datetime | None = None) -> int:
         ids = [r.id for r in old]
         if ids:
             for table in (Segment, Note, Consent, Usage, Participant):
-                s.exec(delete(table).where(col(table.room_id).in_(ids)))  # type: ignore[call-overload]
-            s.exec(delete(Room).where(col(Room.id).in_(ids)))  # type: ignore[call-overload]
+                s.exec(delete(table).where(col(table.room_id).in_(ids)))
+            s.exec(delete(Room).where(col(Room.id).in_(ids)))
             s.commit()
     for r in old:
         hubs.pop(r.code, None)

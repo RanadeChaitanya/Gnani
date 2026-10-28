@@ -215,7 +215,7 @@ async def delete_data(ra: tuple[Room, Claims] = Depends(auth)) -> dict[str, bool
     hub.recent.clear()
     with session() as s:
         for table in (Segment, Note):
-            s.exec(delete(table).where(table.room_id == room.id))  # type: ignore[call-overload]
+            s.exec(delete(table).where(col(table.room_id) == room.id))
         if room.status == "active":
             room.status = "lobby"
             s.add(room)

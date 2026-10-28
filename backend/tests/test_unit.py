@@ -92,6 +92,8 @@ async def test_pacer_catchup_never_bursts() -> None:
     assert len(sent) == 40
     assert total >= 39 * 0.032 / 1.25 - 0.01  # never faster than 1.25x on average
     assert total < 39 * 0.032  # but it did catch up
+    if __import__("sys").platform != "win32":  # per-frame: no gap shorter than the 1.25x interval (−5 ms jitter)
+        assert min(gaps) > 0.032 / 1.25 - 0.005
 
 
 async def test_pacer_drops_oldest() -> None:

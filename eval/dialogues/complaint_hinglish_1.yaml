@@ -1,0 +1,34 @@
+id: complaint_hinglish_1
+domain: complaint
+speakers:
+  A:
+    lang: en-IN
+    voice: Poorvi
+    tts_lang: hi-en
+  B:
+    lang: en-IN
+    voice: Pranav
+    tts_lang: en-IN
+turns:
+- speaker: A
+  text: Hello, mera washing machine kaam nahi kar raha, order number saat do teen
+    chaar hai.
+- speaker: B
+  text: Sorry for the trouble. Can you confirm the order number seven two three four?
+- speaker: A
+  text: Haan, seven two three four. Machine paani nahi nikaal rahi.
+- speaker: B
+  text: I have booked a technician visit for Saturday between twelve and two.
+- speaker: A
+  text: Theek hai, technician ka naam bata dijiye.
+- speaker: B
+  text: Technician Suresh will call you before coming.
+gold_facts:
+- '7234'
+- Saturday
+- '12'
+- '2'
+- Suresh
+gold_actions:
+- technician visit Saturday 12-2
+- Suresh to call before visit

@@ -1,0 +1,33 @@
+id: kirana_marathi_1
+domain: kirana
+speakers:
+  A:
+    lang: en-IN
+    voice: Poorvi
+    tts_lang: hi-en
+  B:
+    lang: mr-IN
+    voice: Ishaan
+    tts_lang: mr-IN
+turns:
+- speaker: A
+  text: Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.
+- speaker: B
+  text: हो, तीन किलो तांदूळ आणि दोन पॅकेट दूध. एकूण दोनशे दहा रुपये.
+- speaker: A
+  text: Theek hai, aur ek dozen kele bhi add kar dijiye.
+- speaker: B
+  text: केळी चाळीस रुपये डझन. मग एकूण दोनशे पन्नास रुपये होतील.
+- speaker: A
+  text: Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.
+- speaker: B
+  text: ठीक आहे कविता ताई, संध्याकाळी सहा वाजता पाठवतो.
+gold_facts:
+- chawal
+- doodh
+- kele
+- '250'
+- '6'
+- Kavita
+gold_actions:
+- deliver by 6 pm

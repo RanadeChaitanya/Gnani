@@ -1,0 +1,35 @@
+id: kirana_hinglish_1
+domain: kirana
+speakers:
+  A:
+    lang: en-IN
+    voice: Poorvi
+    tts_lang: hi-en
+  B:
+    lang: en-IN
+    voice: Pranav
+    tts_lang: en-IN
+turns:
+- speaker: A
+  text: Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.
+- speaker: B
+  text: Haan ji Meena ji, boliye kya chahiye aaj?
+- speaker: A
+  text: Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.
+- speaker: B
+  text: Theek hai, total do sau assi rupaye hoga.
+- speaker: A
+  text: Kal subah das baje tak delivery ho jayegi?
+- speaker: B
+  text: Haan, kal subah das baje Raju aa jayega.
+gold_facts:
+- Meena
+- Gandhi Nagar
+- atta
+- sarson ka tel
+- cheeni
+- '280'
+- '10'
+- Raju
+gold_actions:
+- deliver groceries tomorrow 10 am

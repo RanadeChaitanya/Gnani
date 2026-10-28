@@ -1,0 +1,26 @@
+id: complaint_hindi_1
+domain: complaint
+speakers:
+  A:
+    lang: hi-IN
+    voice: Nalini
+    tts_lang: hi-IN
+  B:
+    lang: hi-IN
+    voice: Deepak
+    tts_lang: hi-IN
+turns:
+- speaker: A
+  text: नमस्ते, मेरा पार्सल अभी तक नहीं आया। ट्रैकिंग नंबर आठ एक छह है।
+- speaker: B
+  text: माफ़ कीजिए। आठ एक छह वाला पार्सल कल शाम तक पहुँच जाएगा।
+- speaker: A
+  text: अगर कल नहीं आया तो क्या पैसे वापस मिलेंगे?
+- speaker: B
+  text: जी हाँ, पूरे नौ सौ निन्यानवे रुपये वापस होंगे।
+gold_facts:
+- '816'
+- '999'
+gold_actions:
+- deliver parcel by tomorrow evening
+- refund if late

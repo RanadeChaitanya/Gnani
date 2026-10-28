@@ -1,0 +1,29 @@
+id: clinic_marathi_1
+domain: clinic
+speakers:
+  A:
+    lang: en-IN
+    voice: Poorvi
+    tts_lang: hi-en
+  B:
+    lang: mr-IN
+    voice: Zahira
+    tts_lang: mr-IN
+turns:
+- speaker: A
+  text: Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.
+- speaker: B
+  text: नमस्कार. डॉक्टर पाटील उद्या सकाळी अकरा वाजता उपलब्ध आहेत.
+- speaker: A
+  text: Kal gyarah baje theek hai. Mera naam Amit Shinde hai.
+- speaker: B
+  text: अमित शिंदे, नोंद केली. तपासणीचे तीनशे रुपये लागतील.
+- speaker: A
+  text: Theek hai, dhanyavaad.
+gold_facts:
+- Patil
+- '11'
+- Amit Shinde
+- '300'
+gold_actions:
+- dentist appointment tomorrow 11 am

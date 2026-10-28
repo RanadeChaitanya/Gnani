@@ -1,0 +1,31 @@
+id: kirana_hindi_1
+domain: kirana
+speakers:
+  A:
+    lang: hi-IN
+    voice: Nalini
+    tts_lang: hi-IN
+  B:
+    lang: hi-IN
+    voice: Deepak
+    tts_lang: hi-IN
+turns:
+- speaker: A
+  text: नमस्ते, मैं सुनीता बोल रही हूँ। दो किलो आलू और एक किलो प्याज़ चाहिए।
+- speaker: B
+  text: जी सुनीता जी, आलू चालीस रुपये और प्याज़ तीस रुपये किलो है।
+- speaker: A
+  text: ठीक है, और आधा किलो टमाटर भी।
+- speaker: B
+  text: कुल मिलाकर एक सौ पच्चीस रुपये हुए। दोपहर दो बजे भेज दूँ?
+- speaker: A
+  text: हाँ, दोपहर दो बजे ठीक है।
+gold_facts:
+- सुनीता
+- आलू
+- प्याज़
+- टमाटर
+- '125'
+- '2'
+gold_actions:
+- deliver at 2 pm

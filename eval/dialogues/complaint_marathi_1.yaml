@@ -1,0 +1,27 @@
+id: complaint_marathi_1
+domain: complaint
+speakers:
+  A:
+    lang: en-IN
+    voice: Poorvi
+    tts_lang: hi-en
+  B:
+    lang: mr-IN
+    voice: Ishaan
+    tts_lang: mr-IN
+turns:
+- speaker: A
+  text: Hello, mera internet do din se band hai.
+- speaker: B
+  text: माफ करा. तुमचा ग्राहक क्रमांक सांगा.
+- speaker: A
+  text: Customer number paanch paanch nau ek hai.
+- speaker: B
+  text: पाच पाच नऊ एक. आमचा तंत्रज्ञ आज संध्याकाळी पाच वाजता येईल.
+- speaker: A
+  text: Theek hai, paanch baje main ghar par rahunga.
+gold_facts:
+- '5591'
+- '5'
+gold_actions:
+- technician visit today 5 pm

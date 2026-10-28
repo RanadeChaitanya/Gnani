@@ -1,0 +1,29 @@
+id: clinic_hindi_1
+domain: clinic
+speakers:
+  A:
+    lang: hi-IN
+    voice: Deepak
+    tts_lang: hi-IN
+  B:
+    lang: hi-IN
+    voice: Nalini
+    tts_lang: hi-IN
+turns:
+- speaker: A
+  text: नमस्ते, मुझे डॉक्टर मेहता से मिलना है।
+- speaker: B
+  text: जी, सोमवार सुबह नौ बजे का समय खाली है।
+- speaker: A
+  text: ठीक है, मेरा नाम राकेश गुप्ता है।
+- speaker: B
+  text: राकेश जी, अपनी पुरानी रिपोर्ट ज़रूर लाइए। फीस चार सौ रुपये है।
+gold_facts:
+- मेहता
+- सोमवार
+- '9'
+- राकेश गुप्ता
+- '400'
+gold_actions:
+- bring old reports
+- appointment Monday 9 am

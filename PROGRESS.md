@@ -33,8 +33,25 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 - [x] Phase 1 backend core: config, redacting JSON logs, SQLModel tables, JWT, rate limiter, header builder, pacer, rotating/reconnecting upstream, fake Gnani server, room hub (reorder + echo dedupe), STT proxy, rooms/consent API, summarizer + faithfulness, retention. **29 tests green** (`pytest`).
   - Pacer ±5 ms per-frame jitter is asserted only on Linux; Windows' asyncio timer has a 15.6 ms tick (mean cadence still asserted). Verify in Docker.
 
-## Next
-Phase 2–4 frontend (Vite React PWA): capture worklet, Solo mode, lobby/consent, call, captions, notes (IndexedDB).
+- [x] Phases 2–4 frontend (`frontend/`): Vite + React 18 PWA. AudioWorklet resampler (FIR + interp, tested for aliasing) and exact 1,024-byte framing; Home/Setup/Room (lobby + consent + call + captions)/Notes/NoteDetail/Privacy; EN+HI strings; LiveKit call (lazy-loaded); IndexedDB notes with search, rename, Markdown export, share, delete; evidence chips; ⚠ flags; wake lock; background pause; iOS "tap to hear".
+  - Vitest: 11 tests. **Playwright e2e: 2 tests green** (two contexts with fake mics → real worklet → proxy → fake Gnani; consent gating, captions on both, quick note in Notes, revoke stops both, delete, room full). Screenshots in `docs/screenshots/`.
+- [x] Phase 5 hardening (partial): CSP/Permissions-Policy/no-store headers, rate limits, retention job, redaction, secrets-not-in-bundle test, no-secrets/no-transcripts-in-logs test, mypy --strict clean, ruff clean. PWA SW caches the app shell only (`/api`, `/ws` excluded). **31 backend tests green.**
+- [x] Phase 6 harness written (`eval/`): 9 seed dialogues, TTS generation, 18 degradations (self-tested), E1/E2/E4 runner with plan/budget guard/cache, report + charts. **Not run yet — needs the Gnani key, and the default plan (~57 min audio) is over the 20 min default budget → Checkpoint C decision.**
+- [x] Phase 7 drafts: Dockerfile (multi-stage) + compose (optional local LiveKit profile), README, docs/{ARCHITECTURE, CONSENT_AND_PRIVACY, LIMITATIONS, DEMO_SCRIPT, DEVICE_TEST, SUBMISSION}.md.
+  - Docker image **not built yet**: Docker Desktop daemon was not running.
+
+## Deviations (frontend)
+- Tailwind/zustand not used: one CSS file with variables (light/dark), React state. Lobby + Call are one `Room.tsx` (shared sockets). Playwright lives in `frontend/e2e/` (needs frontend node_modules).
+- E3/E5 cut (spec §16.9 item 2). Seed dataset is 9 hand-written dialogues (spec asks 24–36; extend with LLM drafts + human review).
+- Echo heuristic can only hide the later segment of a pair (comment in code).
+
+## Next (blocked on human)
+1. Keys in `.env` → `python backend/scripts/smoke.py all` (TTS → REST → WS → probes → LLM). Record concurrency / idle / partials results here.
+2. Checkpoint B: LiveKit Cloud creds + HTTPS route for phones (cloudflared) → real two-phone test (`docs/DEVICE_TEST.md`).
+3. Checkpoint C: eval budget, real clips (optional) → `make_audio.py`, `run_eval.py`, `report.py`.
+4. Start Docker Desktop → `docker compose up --build`; run pacer test in Linux container for the ±5 ms check.
+5. Checkpoint D: deploy target, repo URL, handles → README team table, SUBMISSION.md.
 
 ## Open questions
-- Concurrent STT sockets per key, idle timeout, partials, billing of silence → run `python backend/scripts/smoke.py probe` once the key is in.
+- Concurrent STT sockets per key, idle timeout, partials, billing of silence → `smoke.py probe`.
+- Hindi notice wording needs a human review before shipping (spec §13.2).

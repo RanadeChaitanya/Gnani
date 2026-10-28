@@ -1,0 +1,33 @@
+id: clinic_hinglish_1
+domain: clinic
+speakers:
+  A:
+    lang: en-IN
+    voice: Poorvi
+    tts_lang: hi-en
+  B:
+    lang: en-IN
+    voice: Pranav
+    tts_lang: en-IN
+turns:
+- speaker: A
+  text: Hello, Doctor Arora ke saath appointment chahiye tha.
+- speaker: B
+  text: Sure. Patient's name please?
+- speaker: A
+  text: Rohit Verma. Mujhe do din se bukhaar hai.
+- speaker: B
+  text: Doctor Arora is available on Thursday at four thirty in the evening.
+- speaker: A
+  text: Thursday saade chaar baje theek hai. Fees kitni hai?
+- speaker: B
+  text: Consultation fee is five hundred rupees. Please come fifteen minutes early.
+gold_facts:
+- Arora
+- Rohit Verma
+- Thursday
+- '4:30'
+- '500'
+gold_actions:
+- visit doctor Thursday 4:30 pm
+- arrive 15 minutes early
