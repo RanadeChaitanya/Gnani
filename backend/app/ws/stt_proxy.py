@@ -14,7 +14,6 @@ from sqlmodel import select
 from ..config import get_settings
 from ..db import session
 from ..gnani.stt_client import FRAME_BYTES, GnaniStream, build_headers
-from ..lexicon import bias_words
 from ..models import Participant, Room, Segment, Usage
 from ..security import verify_token
 from .room_hub import RoomHub, get_hub
@@ -32,8 +31,7 @@ class SttSession:
         self.bad_frames = 0
         self.stopped = False
         self._last_usage_push = 0.0
-        words = bias_words(room.scenario, p.lang_code, json.loads(p.bias_words_json))
-        self.stream = GnaniStream(s.stt_url, build_headers(s, p.lang_code, words, bias_score=1.5 if words else 1.0),
+        self.stream = GnaniStream(s.stt_url, build_headers(s, p.lang_code, json.loads(p.bias_words_json)),
                                   self._on_event, self._on_status)
 
     @property

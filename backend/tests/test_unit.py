@@ -24,8 +24,8 @@ from app.ws.room_hub import RoomHub
 
 
 def test_headers_default_transcribe() -> None:
-    h = build_headers(get_settings(), "hi-IN", [])
-    assert h["x-api-key-id"] == "test-key" and h["lang_code"] == "hi-IN" and h["x-sample-rate"] == "16000"
+    h = build_headers(get_settings(), "mr-IN", [])
+    assert h["x-api-key-id"] == "test-key" and h["lang_code"] == "mr-IN" and h["x-sample-rate"] == "16000"
     assert h["x-format"] == "transcribe" and h["x-min-silence-ms"] == "700" and h["x-vad-threshold"] == "0.5"
     assert "x-bias-list" not in h and "x-max-speech-s" not in h
 
@@ -224,12 +224,13 @@ def test_number_words_hinglish_marathi_devanagari() -> None:
     assert {"10", "50"} <= word_numbers("das kilo, pachas rupaye")
 
 
-def test_lexicon_only_for_hinglish_and_user_words_first() -> None:
-    from app.lexicon import bias_words
-    w = bias_words("shop", "en-IN", ["Meena"])
-    assert w[0] == "Meena" and "atta" in w and len(w) <= 100
-    assert bias_words("shop", "mr-IN", ["Meena"]) == ["Meena"]
-    validate_bias_words(w)  # all valid for Gnani
+def test_spoken_form_for_hindi_and_english_itn_elsewhere() -> None:
+    """Measured: Gnani ITN broke "dhai sau" on hi-IN; Saar parses numbers itself for hi/en."""
+    st = get_settings()
+    assert build_headers(st, "hi-IN", [])["x-format"] == "verbatim"
+    assert build_headers(st, "en-IN", [])["x-format"] == "verbatim"
+    assert build_headers(st, "mr-IN", [])["x-format"] == "transcribe"
+    assert "x-bias-list" not in build_headers(st, "hi-IN", [])
 
 
 # ---------------- summarizer retry ----------------

@@ -23,6 +23,9 @@ log = logging.getLogger("saar.gnani")
 FRAME_BYTES = 1024
 FRAME_S = 0.032  # 512 samples @ 16 kHz
 BIAS_SCORES = {0.0, 0.5, 1.0, 1.5, 2.0}
+# Spoken form for these: Saar's own number parser is more reliable than Gnani ITN on Hindi ("dhai sau" → "ढाई 100")
+# and keeps product words intact (eval/grocery_ab.py: hi-IN verbatim 97 % items+numbers).
+VERBATIM_LANGS = {"hi-IN", "en-IN"}
 SPEECH_RMS = 500  # int16 RMS above which a frame counts as "speech" for idle detection
 
 
@@ -48,7 +51,7 @@ def build_headers(s: Settings, lang_code: str, bias_words: list[str], *, bias_sc
         "x-api-key-id": s.gnani_api_key,
         "lang_code": lang_code,
         "x-sample-rate": str(sample_rate),
-        "x-format": "verbatim" if words else s.stt_format_default,
+        "x-format": "verbatim" if words or lang_code in VERBATIM_LANGS else s.stt_format_default,
         "itn_native_numerals": "false",
         "x-vad-threshold": str(s.stt_vad_threshold),
         "x-min-silence-ms": str(s.stt_min_silence_ms),

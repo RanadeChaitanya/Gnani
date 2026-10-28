@@ -1,0 +1,560 @@
+[
+ {
+  "cfg": "v3",
+  "ref": "Hello, Doctor Arora ke saath appointment chahiye tha.",
+  "hyp": "hello doctor aurora ke saath appointment chaahiye tha",
+  "wer": 0.25,
+  "cer": 0.0392156862745098,
+  "lat": [
+   264
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Rohit Verma. Mujhe do din se bukhaar hai.",
+  "hyp": "rohit verma mujhe do din se bukhar hai",
+  "wer": 0.125,
+  "cer": 0.02564102564102564,
+  "lat": [
+   152
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Thursday saade chaar baje theek hai. Fees kitni hai?",
+  "hyp": "thursday sadhe chaar baje theek hai fees kitani hai",
+  "wer": 0.2222222222222222,
+  "cer": 0.06,
+  "lat": [
+   192
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.",
+  "hyp": "namaste mujhe dentist ka appointment chaahiye dant mein dant hai",
+  "wer": 0.3,
+  "cer": 0.0625,
+  "lat": [
+   150
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Kal gyarah baje theek hai. Mera naam Amit Shinde hai.",
+  "hyp": "kal gyarah baje theek hai mera naam amit shinde hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   293
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Theek hai, dhanyavaad.",
+  "hyp": "theek hai dhanyavad",
+  "wer": 0.3333333333333333,
+  "cer": 0.05,
+  "lat": [
+   124
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Hello, mera washing machine kaam nahi kar raha, order number saat do teen chaar hai.",
+  "hyp": "hello mera washing machine kaam nahi kar raha order number saat do teen chaar hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   154
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Haan, seven two three four. Machine paani nahi nikaal rahi.",
+  "hyp": "haan seven two three four machine paani nahi nikaal rahi",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   148
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Theek hai, technician ka naam bata dijiye.",
+  "hyp": "theek hai technician ka naam bata dijiye",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   152
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Hello, mera internet do din se band hai.",
+  "hyp": "hello mera internet do din se band hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   150
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Customer number paanch paanch nau ek hai.",
+  "hyp": "customer number paanch paanch nau ek hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   156
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Theek hai, paanch baje main ghar par rahunga.",
+  "hyp": "theek hai paanch baje mein ghar per rahunga",
+  "wer": 0.25,
+  "cer": 0.046511627906976744,
+  "lat": [
+   122
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.",
+  "hyp": "hello bhaiya mein meena bol rahi hoon gandhinagar se",
+  "wer": 0.3,
+  "cer": 0.03773584905660377,
+  "lat": [
+   154
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.",
+  "hyp": "do kilo aata ek litre sarson ka tel aur paanch sau gram chini bhej dijiye",
+  "wer": 0.13333333333333333,
+  "cer": 0.04054054054054054,
+  "lat": [
+   155
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Kal subah das baje tak delivery ho jayegi?",
+  "hyp": "kal subah dus baje tak delivery ho jaayegi",
+  "wer": 0.25,
+  "cer": 0.04878048780487805,
+  "lat": [
+   128
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.",
+  "hyp": "namaste dada mujhe teen kilo chaval aur do packet doodh chaahiye",
+  "wer": 0.18181818181818182,
+  "cer": 0.031746031746031744,
+  "lat": [
+   267
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Theek hai, aur ek dozen kele bhi add kar dijiye.",
+  "hyp": "theek hai aur ek dozen ke liye bhej kar dijiye",
+  "wer": 0.3,
+  "cer": 0.17391304347826086,
+  "lat": [
+   162
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v3",
+  "ref": "Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.",
+  "hyp": "shaam ko chhah baje tak bhej dena mera naam kavita hai",
+  "wer": 0.09090909090909091,
+  "cer": 0.03773584905660377,
+  "lat": [
+   152
+  ],
+  "types": [
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Hello, Doctor Arora ke saath appointment chahiye tha.",
+  "hyp": "hello doctor aurora ke saath appointment chaahiye tha",
+  "wer": 0.25,
+  "cer": 0.0392156862745098,
+  "lat": [
+   150
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Rohit Verma. Mujhe do din se bukhaar hai.",
+  "hyp": "rohit verma mujhe do din se bukhar hai",
+  "wer": 0.125,
+  "cer": 0.02564102564102564,
+  "lat": [
+   162
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Thursday saade chaar baje theek hai. Fees kitni hai?",
+  "hyp": "thursday sadhe chaar baje theek hai fees kitani hai",
+  "wer": 0.2222222222222222,
+  "cer": 0.06,
+  "lat": [
+   165
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.",
+  "hyp": "namaste mujhe dentist ka appointment chaahiye dant mein dant hai",
+  "wer": 0.3,
+  "cer": 0.0625,
+  "lat": [
+   151
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Kal gyarah baje theek hai. Mera naam Amit Shinde hai.",
+  "hyp": "kal gyarah baje theek hai mera naam amit shinde hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   148
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Theek hai, dhanyavaad.",
+  "hyp": "theek hai dhanyavad",
+  "wer": 0.3333333333333333,
+  "cer": 0.05,
+  "lat": [
+   138
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Hello, mera washing machine kaam nahi kar raha, order number saat do teen chaar hai.",
+  "hyp": "hello mera washing machine kaam nahi kar raha order number saat do teen chaar hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   156
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Haan, seven two three four. Machine paani nahi nikaal rahi.",
+  "hyp": "haan seven two three four machine paani nahi nikaal rahi",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   286
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Theek hai, technician ka naam bata dijiye.",
+  "hyp": "theek hai technician ka naam bata dijiye",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   298
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Hello, mera internet do din se band hai.",
+  "hyp": "hello mera internet do din se band hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   140
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Customer number paanch paanch nau ek hai.",
+  "hyp": "customer number paanch paanch nau ek hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "lat": [
+   143
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Theek hai, paanch baje main ghar par rahunga.",
+  "hyp": "theek hai paanch baje mein ghar per rahunga",
+  "wer": 0.25,
+  "cer": 0.046511627906976744,
+  "lat": [
+   199
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.",
+  "hyp": "hello bhaiya mein meena bol rahi hoon gandhinagar se",
+  "wer": 0.3,
+  "cer": 0.03773584905660377,
+  "lat": [
+   145
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.",
+  "hyp": "do kilo aata ek litre sarson ka tel aur paanch sau gram chini bhej dijiye",
+  "wer": 0.13333333333333333,
+  "cer": 0.04054054054054054,
+  "lat": [
+   179
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Kal subah das baje tak delivery ho jayegi?",
+  "hyp": "kal subah dus baje tak delivery ho jaayegi",
+  "wer": 0.25,
+  "cer": 0.04878048780487805,
+  "lat": [
+   121
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.",
+  "hyp": "namaste dada mujhe teen kilo chaval aur do packet doodh chaahiye",
+  "wer": 0.18181818181818182,
+  "cer": 0.031746031746031744,
+  "lat": [
+   163
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Theek hai, aur ek dozen kele bhi add kar dijiye.",
+  "hyp": "theek hai aur ek dozen ke liye bhej kar dijiye",
+  "wer": 0.3,
+  "cer": 0.17391304347826086,
+  "lat": [
+   151
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ },
+ {
+  "cfg": "v4",
+  "ref": "Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.",
+  "hyp": "shaam ko chhah baje tak bhej dena mera naam kavita hai",
+  "wer": 0.09090909090909091,
+  "cer": 0.03773584905660377,
+  "lat": [
+   171
+  ],
+  "types": [
+   "processing",
+   "speech_start",
+   "transcript"
+  ],
+  "first": "connected"
+ }
+]
