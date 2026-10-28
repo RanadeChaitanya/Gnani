@@ -11,15 +11,15 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 | Demo languages | **Hinglish (`en-IN`) + Marathi (`mr-IN`) + English**. Scenarios: kirana order, appointment booking (defaults). |
 | Team | Two members; handles to collect at Checkpoint D. |
 
-## >>> CURRENT TASK (v3) — resume here if the session was cut off <<<
+## v3 (2026-10-28) — DONE
 User feedback after v2 phone test (2026-10-28): Hindi recognition poor; UI cluttered; note should show *understanding* (structured), not translations; target near-100 % accuracy; say honestly whether limits are Gnani's or ours.
 Evidence: test rooms 9L7E8R, LFFATE (backend/data/saar.db). Mics healthy. Errors: "dais"=das, "har bhara daur"=arhar dal?, "sandee"=santre/suji?, crosstalk (both phones in one room heard both voices → duplicate sugar 8 kg / 50 kg).
 Steps (mark [x] as done, commit after each):
 - [x] 1. v4 == v3 word-for-word (eval/results/v3_vs_v4.json): same model, no better key exists. Grocery A/B (eval/grocery_ab.py): hi-IN verbatim no-bias 97 %, en-IN no-bias 94 %, en-IN + v2 vocab 84 % (vocab HURT).
 - [x] 2. DONE: drop scenario vocab (lexicon.py); hi-IN + en-IN use verbatim (Saar parses numbers); default language hi-IN "Hindi / Hinglish"; user-typed names still boosted.
 - [x] 3. DONE (prompt v3, schema: outcome + heard_as, no quotes/requirements; real transcripts → arhar dal recovered, "Sugar: 8 kg or 50 kg?" asked). Was: DeepSeek v3 prompt: understand intent; correct misheard product names to likely words with `heard_as`; merge duplicates/crosstalk; no translation-only output.
-- [ ] 4. Minimal UI: note = title, 1-line summary, items table, totals, when/where, one Share button; details hidden.
-- [ ] 5. Tests green, rebuild, restart backend + tunnel (tunnel URL changes!), live check, commit, report.
+- [x] 4. DONE. Minimal UI: note = title, 1-line summary, items table, totals, when/where, one Share button; details hidden.
+- [x] 5. DONE (backend 37, frontend 12, e2e 2; live at https://mills-data-midi-mechanisms.trycloudflare.com). Tests green, rebuild, restart backend + tunnel (tunnel URL changes!), live check, commit, report.
 
 ## Phase 0 live findings (2026-10-28, real keys)
 - TTS (Timbre v2.5: Kaveri en-IN, Nalini hi-IN, Zahira mr-IN) ✅ — but WAV headers carry streaming sizes (0xFFFFFFFF); `gnani/tts_client.fix_wav_header` rewrites them.

@@ -3,8 +3,12 @@ import { useSyncExternalStore } from "react";
 
 export const strings = {
   en: {
-    tagline: "Talk on a call. Get a clean note — with everyone's consent.",
-    sub: "Live captions in Hinglish, Marathi, Hindi and more. Orders, prices, places and times come out as a tidy note on both phones.",
+    pleaseCheck: "Please check",
+    heard: "heard",
+    more: "More",
+    joinCallWith: "Join a call with",
+    consentShort: "Only your own voice is transcribed (by Gnani AI) — never recorded. Text stays 24 h on the server and on your phone. Either person can stop it any time.",
+    tagline: "Talk. Get a clean note.",
     demo: "Prototype — use only test or consenting conversations.",
     start: "Start a call",
     join: "Join a call",
@@ -12,12 +16,7 @@ export const strings = {
     notes: "Notes",
     privacy: "Privacy",
     name: "Your name",
-    speak: "I'll speak in",
-    topic: "What's the call about?",
-    scShop: "Shop order",
-    scAppt: "Appointment",
-    scComplaint: "Complaint",
-    scOther: "Other",
+    speak: "I'll speak in",
     moreOptions: "More options",
     notesIn: "Note language",
     notesEn: "English",
@@ -26,19 +25,11 @@ export const strings = {
     bias: "Names or words to recognise",
     biasHint: "Single words, letters only, separated by spaces",
     code: "Call code",
-    invitedYou: "invited you to a call",
-    roomFull: "This call already has two people.",
-    consentTitle: "Before you talk",
-    c1: "Only your own voice is transcribed, by Gnani AI.",
-    c2: "Your voice is never recorded or saved.",
-    c3: "Text and the note stay on our server for 24 h, and on your phone.",
-    c4: "Either person can stop transcription at any time.",
+    roomFull: "This call already has two people.",
     readNotice: "Read the full notice",
     agreeStart: "Agree & start call",
     agreeJoin: "Agree & join",
-    agreeSolo: "Agree & start test",
-    agreeStartHint: "Transcription starts by itself once the other person also agrees.",
-    agreeJoinHint: "Tapping agree joins the call; transcription starts once you're both in.",
+    agreeSolo: "Agree & start test",
     waitingFor: "Waiting for the other person",
     scanToJoin: "Ask them to scan this, or share the link",
     share: "Share link",
@@ -73,38 +64,27 @@ export const strings = {
     copy: "Copy",
     exportMd: "Markdown",
     shareNote: "Share",
-    whatsapp: "WhatsApp",
     pdf: "PDF",
     csv: "Items CSV",
     note: "Note",
     transcript: "Transcript",
     unverified: "items could not be checked against what was said",
-    summary: "Summary",
-    order: "Order",
-    item: "Item",
-    qty: "Qty",
-    price: "Price",
-    subtotal: "Subtotal",
-    total: "Total",
-    pricedItems: "Priced items",
-    saidInCall: "Total said on the call",
-    unpriced: "price not mentioned",
-    locations: "Places",
-    schedule: "When",
-    requirements: "Needs",
+    summary: "Summary",
+    saidInCall: "Total said on the call",
     decisions: "Agreed",
-    actions: "To do",
-    openQuestions: "Still open",
-    uncertain: "Unclear on the call",
-    people: "People",
+    actions: "To do",
     home: "Home",
     deleteServer: "Delete this conversation from the server now",
     debug: "Details",
     ended: "Call ended",
   },
   hi: {
-    tagline: "कॉल पर बात करें। साफ़ नोट पाएँ — सबकी सहमति से।",
-    sub: "हिंग्लिश, मराठी, हिन्दी और भी भाषाओं में लाइव कैप्शन। सामान, दाम, जगह और समय — दोनों फ़ोन पर एक साफ़ नोट में।",
+    pleaseCheck: "कृपया जाँच लें",
+    heard: "सुना गया",
+    more: "और",
+    joinCallWith: "कॉल से जुड़ें —",
+    consentShort: "केवल आपकी अपनी आवाज़ (Gnani AI से) टेक्स्ट में बदली जाती है — रिकॉर्ड नहीं होती। टेक्स्ट 24 घंटे सर्वर पर और आपके फ़ोन में रहता है। कोई भी कभी भी रोक सकता है।",
+    tagline: "बात करें। साफ़ नोट पाएँ।",
     demo: "प्रोटोटाइप — केवल टेस्ट या सहमति वाली बातचीत के लिए।",
     start: "कॉल शुरू करें",
     join: "कॉल से जुड़ें",
@@ -112,12 +92,7 @@ export const strings = {
     notes: "नोट्स",
     privacy: "गोपनीयता",
     name: "आपका नाम",
-    speak: "मैं बोलूँगा/बोलूँगी",
-    topic: "कॉल किस बारे में है?",
-    scShop: "दुकान का ऑर्डर",
-    scAppt: "अपॉइंटमेंट",
-    scComplaint: "शिकायत",
-    scOther: "अन्य",
+    speak: "मैं बोलूँगा/बोलूँगी",
     moreOptions: "और विकल्प",
     notesIn: "नोट की भाषा",
     notesEn: "अंग्रेज़ी",
@@ -126,19 +101,11 @@ export const strings = {
     bias: "पहचानने के लिए नाम या शब्द",
     biasHint: "एक-एक शब्द, केवल अक्षर, स्पेस से अलग",
     code: "कॉल कोड",
-    invitedYou: "ने आपको कॉल पर बुलाया है",
-    roomFull: "इस कॉल में पहले से दो लोग हैं।",
-    consentTitle: "बात शुरू करने से पहले",
-    c1: "केवल आपकी अपनी आवाज़ Gnani AI से टेक्स्ट में बदली जाती है।",
-    c2: "आपकी आवाज़ कभी रिकॉर्ड या सेव नहीं होती।",
-    c3: "टेक्स्ट और नोट सर्वर पर 24 घंटे और आपके फ़ोन में रहते हैं।",
-    c4: "कोई भी व्यक्ति कभी भी ट्रांसक्रिप्शन रोक सकता है।",
+    roomFull: "इस कॉल में पहले से दो लोग हैं।",
     readNotice: "पूरी सूचना पढ़ें",
     agreeStart: "सहमत हूँ, कॉल शुरू करें",
     agreeJoin: "सहमत हूँ, जुड़ें",
-    agreeSolo: "सहमत हूँ, टेस्ट शुरू करें",
-    agreeStartHint: "दूसरे व्यक्ति के सहमत होते ही ट्रांसक्रिप्शन अपने आप शुरू होगा।",
-    agreeJoinHint: "सहमत होते ही आप कॉल से जुड़ जाएँगे; दोनों के जुड़ने पर ट्रांसक्रिप्शन शुरू होगा।",
+    agreeSolo: "सहमत हूँ, टेस्ट शुरू करें",
     waitingFor: "दूसरे व्यक्ति का इंतज़ार",
     scanToJoin: "उनसे यह स्कैन करवाएँ, या लिंक भेजें",
     share: "लिंक भेजें",
@@ -173,30 +140,15 @@ export const strings = {
     copy: "कॉपी",
     exportMd: "मार्कडाउन",
     shareNote: "शेयर",
-    whatsapp: "व्हाट्सऐप",
     pdf: "PDF",
     csv: "सामान CSV",
     note: "नोट",
     transcript: "ट्रांसक्रिप्ट",
     unverified: "बातें बातचीत से मिलाई नहीं जा सकीं",
-    summary: "सारांश",
-    order: "ऑर्डर",
-    item: "सामान",
-    qty: "मात्रा",
-    price: "दाम",
-    subtotal: "उप-योग",
-    total: "कुल",
-    pricedItems: "दाम वाले सामान",
-    saidInCall: "कॉल में बताया गया कुल",
-    unpriced: "दाम नहीं बताया",
-    locations: "जगहें",
-    schedule: "कब",
-    requirements: "ज़रूरतें",
+    summary: "सारांश",
+    saidInCall: "कॉल में बताया गया कुल",
     decisions: "तय हुआ",
-    actions: "करना है",
-    openQuestions: "अभी तय नहीं",
-    uncertain: "कॉल में साफ़ नहीं",
-    people: "लोग",
+    actions: "करना है",
     home: "होम",
     deleteServer: "यह बातचीत अभी सर्वर से हटाएँ",
     debug: "विवरण",

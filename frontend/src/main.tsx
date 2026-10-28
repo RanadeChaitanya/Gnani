@@ -1,8 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getConfig } from "./lib/api";
 import { setLang, useT } from "./lib/i18n";
 import Home from "./pages/Home";
 import Notes from "./pages/Notes";
@@ -19,10 +17,6 @@ function JoinRedirect() {
 
 function App() {
   const { t, lang } = useT();
-  const [demo, setDemo] = useState(false);
-  useEffect(() => {
-    getConfig().then((c) => setDemo(c.demo_mode)).catch(() => {});
-  }, []);
   return (
     <div className="app">
       <header className="top">
@@ -32,7 +26,6 @@ function App() {
           {lang === "en" ? "हिं" : "EN"}
         </button>
       </header>
-      {demo && <div className="demo-strip" role="note">{t("demo")}</div>}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />

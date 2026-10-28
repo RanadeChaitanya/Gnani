@@ -44,7 +44,7 @@ export type Segment = {
   latency_ms?: number;
 };
 type Ev = { evidence: number[] };
-type Cited = { text: string; original?: string | null } & Ev;
+type Cited = { text: string } & Ev;
 export type Item = {
   name: string;
   quantity: number | null;
@@ -52,21 +52,21 @@ export type Item = {
   unit_price: number | null;
   total_price: number | null;
   shop: string | null;
+  heard_as?: string | null;
 } & Ev;
 export type NoteContent = {
   title: string;
   note_language: string;
   conversation_type: "order" | "appointment" | "complaint" | "general";
+  outcome: string;
   summary: string[];
   parties: { name: string; role: string }[];
-  requirements: Cited[];
   items: Item[];
   stated_totals: ({ amount: number; shop: string | null } & Ev)[];
   locations: ({ name: string; kind: string } & Ev)[];
   schedule: ({ what: string; when: string; where: string | null } & Ev)[];
   decisions: Cited[];
   action_items: ({ task: string; owner: string | null; due: string | null } & Ev)[];
-  open_questions: string[];
   uncertain_spans: ({ text: string; reason: string } & Ev)[];
   conversation_languages: string[];
 };

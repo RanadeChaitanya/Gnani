@@ -17,21 +17,20 @@ const payload = (id: string, created: string): NotePayload => ({
     title: "Atta order",
     note_language: "en",
     conversation_type: "order",
+    outcome: "Ravi Kirana delivers 2 kg atta and 1 litre oil to Gandhi Nagar tomorrow at 10.",
     summary: ["2 kg atta and 1 litre oil from Ravi Kirana"],
     parties: [{ name: "Ravi", role: "shopkeeper" }],
-    requirements: [{ text: "2 kg atta", original: "do kilo atta", evidence: [1] }],
     items: [
       { name: "atta", quantity: 2, unit: "kg", unit_price: 50, total_price: null, shop: "Ravi Kirana", evidence: [1] },
       { name: "oil", quantity: 1, unit: "litre", unit_price: null, total_price: 140, shop: "Ravi Kirana", evidence: [2] },
-      { name: "eggs", quantity: 12, unit: "piece", unit_price: null, total_price: null, shop: null, evidence: [2] },
+      { name: "arhar dal", quantity: 10, unit: "kg", unit_price: null, total_price: null, shop: null, heard_as: "har bhara daur", evidence: [2] },
     ],
     stated_totals: [{ amount: 240, shop: "Ravi Kirana", evidence: [2] }],
     locations: [{ name: "Gandhi Nagar", kind: "delivery", evidence: [2] }],
     schedule: [{ what: "delivery", when: "tomorrow 10:00", where: "Gandhi Nagar", evidence: [2] }],
     decisions: [],
     action_items: [{ task: "Deliver atta", owner: "Ravi", due: "tomorrow", evidence: [2, 3] }],
-    open_questions: [],
-    uncertain_spans: [],
+    uncertain_spans: [{ text: "Sugar: 8 kg or 50 kg?", reason: "two versions", evidence: [1] }],
     conversation_languages: ["en-IN", "mr-IN"],
   },
   costs: {
@@ -50,7 +49,7 @@ describe("notesDb", () => {
     await saveNote(payload("n2", "2026-10-28T11:00:00"));
     expect((await listNotes()).map((n) => n.id)).toEqual(["n2", "n1"]);
     expect(await listNotes("gandhi nagar")).toHaveLength(2);
-    expect(await listNotes("eggs")).toHaveLength(2);
+    expect(await listNotes("arhar")).toHaveLength(2);
     expect(await listNotes("nothing-here")).toHaveLength(0);
     await renameNote("n1", "My title");
     await saveNote(payload("n1", "2026-10-28T10:00:00")); // re-delivery keeps the user's title
@@ -63,12 +62,12 @@ describe("notesDb", () => {
     const n = await saveNote(payload("n3", "2026-10-28T12:00:00"));
     const md = toMarkdown(n);
     expect(md).toContain("# Atta order");
-    expect(md).toContain("**Ravi Kirana**");
+    expect(md).toContain("**Ravi Kirana delivers 2 kg atta and 1 litre oil to Gandhi Nagar tomorrow at 10.**");
+    expect(md).toContain("## Please check\n- Sugar: 8 kg or 50 kg?");
+    expect(md).toContain("| arhar dal (heard “har bhara daur”) | 10 kg | — |");
     expect(md).toContain("| atta | 2 kg | ₹100 |");
-    expect(md).toContain("| eggs | 12 piece | — |");
     expect(md).toContain("Priced items: ₹240 (+1 without price)");
     expect(md).toContain("- Gandhi Nagar (delivery)");
-    expect(md).toContain("## ⚠ Not found in what was said");
     expect(toMarkdown(n)).toBe(md);
   });
 
@@ -78,7 +77,8 @@ describe("notesDb", () => {
     expect(wa).toContain("*Atta order*");
     expect(wa).toContain("• atta — 2 kg — ₹100");
     expect(wa).toContain("Priced items: ₹240 (+1 without price)");
-    expect(wa).toContain("📍 *Places*");
+    expect(wa).toContain("📍 Gandhi Nagar");
+    expect(wa).toContain("❓ *Please check*\n• Sugar: 8 kg or 50 kg?");
     const csv = toCSV(n).split("\n");
     expect(csv[0]).toBe('"shop","item","quantity","unit","unit_price_inr","line_total_inr"');
     expect(csv[1]).toBe('"Ravi Kirana","atta","2","kg","50","100"');

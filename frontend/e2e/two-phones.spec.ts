@@ -25,7 +25,7 @@ test("two phones: one-tap consent, auto start, live captions on both, note, stop
   const code = (await host.locator(".code").textContent())!.trim();
 
   await guest.goto(`/join/${code}`);
-  await expect(guest.getByText("invited you to a call")).toBeVisible();
+  await expect(guest.getByRole("heading", { name: /Join a call with\s*Asha/ })).toBeVisible();
   await shot(guest, "0-join");
   await enter(guest, `/join/${code}`, "Ravi", "mr-IN", /Agree & join/);
 
@@ -51,12 +51,13 @@ test("two phones: one-tap consent, auto start, live captions on both, note, stop
   await expect(guest.getByRole("button", { name: "I agree" })).toBeVisible();
 
   await guest.goto("/notes");
-  const card = guest.locator(".card").filter({ hasText: "quick" });
-  await expect(card).toHaveCount(1);
-  await card.getByRole("link").click();
-  await expect(guest.getByRole("heading", { name: "Summary" })).toBeVisible();
-  await expect(guest.getByRole("button", { name: /WhatsApp/ })).toBeVisible();
+  const row = guest.locator(".note-row").filter({ hasText: "quick" });
+  await expect(row).toHaveCount(1);
+  await row.click();
+  await expect(guest.getByText("Mock note (no LLM).")).toBeVisible();
+  await expect(guest.getByRole("button", { name: "Share" })).toBeVisible();
   await shot(guest, "3-note");
+  await guest.getByText("More", { exact: true }).click();
   guest.once("dialog", (d) => d.accept());
   await guest.getByRole("button", { name: "Delete" }).click();
   await expect(guest.getByText("No notes yet")).toBeVisible();

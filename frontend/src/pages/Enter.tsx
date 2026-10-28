@@ -1,20 +1,9 @@
-// One screen to start or join a call: name, language, topic, and consent in a single "Agree" tap.
+// One screen to start or join a call: name, language, and consent in a single "Agree" tap.
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { api, ApiError, getConfig, Language, Notice, Preview, saveSession, Scenario, Session } from "../lib/api";
+import { api, ApiError, getConfig, Language, Notice, Preview, saveSession, Session } from "../lib/api";
 import { useT } from "../lib/i18n";
 import { prepareMedia } from "../lib/media";
-
-const SCENARIOS: { id: Scenario; icon: string; key: "scShop" | "scAppt" | "scComplaint" | "scOther" }[] = [
-  { id: "shop", icon: "🛒", key: "scShop" },
-  { id: "appointment", icon: "🩺", key: "scAppt" },
-  { id: "complaint", icon: "🛠️", key: "scComplaint" },
-  { id: "general", icon: "💬", key: "scOther" },
-];
-
-function NoticeText({ text }: { text: string }) {
-  return <>{text.split("\n").map((l, i) => <p key={i}>{l.replace(/\*\*/g, "")}</p>)}</>;
-}
 
 export default function Enter() {
   const { t, lang: uiLang } = useT();
@@ -25,8 +14,7 @@ export default function Enter() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [name, setName] = useState(localStorage.getItem("saar:name") ?? "");
-  const [lang, setLangCode] = useState(localStorage.getItem("saar:speak") ?? "en-IN");
-  const [scenario, setScenario] = useState<Scenario>((localStorage.getItem("saar:scenario") as Scenario) || "shop");
+  const [lang, setLangCode] = useState(localStorage.getItem("saar:speak2") ?? "hi-IN");
   const [notesLang, setNotesLang] = useState("en");
   const [bias, setBias] = useState("");
   const [code, setCode] = useState((params.get("code") ?? "").toUpperCase());
@@ -46,8 +34,7 @@ export default function Enter() {
     setErr("");
     setBusy(true);
     localStorage.setItem("saar:name", name);
-    localStorage.setItem("saar:speak", lang);
-    if (mode !== "join") localStorage.setItem("saar:scenario", scenario);
+    localStorage.setItem("saar:speak2", lang);
     try {
       await prepareMedia(); // inside the tap: unlock audio + ask mic permission now, not mid-call
     } catch (x) {
@@ -55,7 +42,7 @@ export default function Enter() {
       return setErr(t((x as Error).message === "insecure" ? "insecure" : "micDenied"));
     }
     const body = { display_name: name, lang_code: lang, notes_lang: notesLang, bias_words: bias.split(/[\s,]+/).filter(Boolean),
-      ...(mode === "join" ? {} : { scenario, solo: mode === "solo" }) };
+      ...(mode === "join" ? {} : { solo: mode === "solo" }) };
     try {
       const s = mode === "join"
         ? await api<Session>(`/api/rooms/${code}/join`, { body })
@@ -70,28 +57,20 @@ export default function Enter() {
     }
   }
 
-  const sc = SCENARIOS.find((s) => s.id === preview?.scenario);
   return (
     <form className="stack" onSubmit={submit}>
-      {mode === "join" ? (
-        <>
-          <h1>{t("join")}</h1>
-          {preview?.host_name ? (
-            <div className="card invite">
-              <div className="avatar">{preview.host_name[0]?.toUpperCase()}</div>
-              <div><strong>{preview.host_name}</strong> {t("invitedYou")}{sc && <div className="muted">{sc.icon} {t(sc.key)}</div>}</div>
-            </div>
-          ) : (
-            <label>{t("code")}
-              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} required
-                autoCapitalize="characters" className="code" inputMode="text" placeholder="ABC234" />
-            </label>
-          )}
-          {preview?.full && <div className="error">{t("roomFull")}</div>}
-        </>
+      {mode === "join" && preview?.host_name ? (
+        <h1><span className="muted">{t("joinCallWith")}</span><br />{preview.host_name}</h1>
       ) : (
-        <h1>{mode === "solo" ? t("solo") : t("start")}</h1>
+        <h1>{mode === "join" ? t("join") : mode === "solo" ? t("solo") : t("start")}</h1>
       )}
+      {mode === "join" && !preview?.host_name && (
+        <label>{t("code")}
+          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 6))} required
+            autoCapitalize="characters" className="code" placeholder="ABC234" />
+        </label>
+      )}
+      {preview?.full && <div className="error">{t("roomFull")}</div>}
 
       <label>{t("name")}
         <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} autoComplete="nickname" />
@@ -101,15 +80,6 @@ export default function Enter() {
           {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>
       </label>
-      {mode !== "join" && (
-        <fieldset className="chips">
-          <legend>{t("topic")}</legend>
-          {SCENARIOS.map((s) => (
-            <button type="button" key={s.id} className={`chip-btn ${scenario === s.id ? "on" : ""}`}
-              aria-pressed={scenario === s.id} onClick={() => setScenario(s.id)}>{s.icon} {t(s.key)}</button>
-          ))}
-        </fieldset>
-      )}
       <details className="more">
         <summary>{t("moreOptions")}</summary>
         <label>{t("notesIn")}
@@ -120,31 +90,25 @@ export default function Enter() {
           </select>
         </label>
         <label>{t("bias")}
-          <input value={bias} onChange={(e) => setBias(e.target.value)} placeholder="Meena Sharma Kirana" />
+          <input value={bias} onChange={(e) => setBias(e.target.value)} placeholder="Meena Sharma" />
           <span className="muted">{t("biasHint")}</span>
         </label>
       </details>
 
-      <section className="card consent" aria-labelledby="consent-h">
-        <h2 id="consent-h">🔒 {t("consentTitle")}</h2>
-        <ul>
-          <li>{t("c1")}</li>
-          <li>{t("c2")}</li>
-          <li>{t("c3")}</li>
-          <li>{t("c4")}</li>
-        </ul>
+      <p className="consent-line">🔒 {t("consentShort")}{" "}
         {notice && (
-          <details>
+          <details className="inline">
             <summary>{t("readNotice")}</summary>
-            <div dir="auto" className="notice"><NoticeText text={uiLang === "hi" ? notice.text_hi : notice.text_en} /></div>
+            <div dir="auto" className="notice">
+              {(uiLang === "hi" ? notice.text_hi : notice.text_en).split("\n").map((l, i) => <p key={i}>{l.replace(/\*\*/g, "")}</p>)}
+            </div>
           </details>
         )}
-      </section>
+      </p>
       {err && <div className="error" role="alert">{err}</div>}
       <button className="primary big" disabled={busy || !!preview?.full}>
         {busy ? "…" : mode === "join" ? t("agreeJoin") : mode === "solo" ? t("agreeSolo") : t("agreeStart")}
       </button>
-      <p className="muted center">{mode === "join" ? t("agreeJoinHint") : t("agreeStartHint")}</p>
     </form>
   );
 }

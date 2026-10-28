@@ -54,3 +54,9 @@ Evidence came from the test session's own data (transcripts, usage counters, not
 
 Also fixed along the way: Python `\w` split Devanagari words (affected the faithfulness check); Chrome's `scrollIntoView` now returns a Promise, which crashed React when returned from an effect.
 Not yet measured: word boosting for Devanagari languages (Marathi "kele" was heard as "केरी").
+
+## v3 (same day, after the v2 phone test)
+- **Gnani limit, measured:** `/stt/v4/stream` returns word-for-word the same as v3 — one model, no better key to buy. On 6 realistic Hinglish orders (TTS, 32 items+numbers): hi-IN spoken-form 97 %, en-IN 94 %, en-IN + v2 vocabulary 84 % → v2 vocabulary removed; Hindi/Hinglish now defaults to hi-IN spoken form; Saar parses numbers.
+- **Note step:** prompt/schema v3 — one-sentence outcome, misheard-word repair with `heard_as` ("har bhara daur" → arhar dal), crosstalk merge with a confirm question ("Sugar: 8 kg or 50 kg?"), no line-by-line translation. Recovered numbers are labelled "inferred", not hidden.
+- **UI:** note = outcome → Please check → items → when/where → to do → Share; everything else under More. Entry = name, language, one-sentence consent, Agree. Home = two buttons.
+- **Setup advice:** two phones in one room transcribe both voices; test in separate rooms or with earphone mics.
