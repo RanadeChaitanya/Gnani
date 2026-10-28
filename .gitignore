@@ -13,3 +13,4 @@ eval/cache/
 .ruff_cache/
 test-results/
 playwright-report/
+*.egg-info/
