@@ -60,6 +60,11 @@ Resume guide: read `SPEC.md`, then this file. Backend: `cd backend && .venv/Scri
 - E3/E5 cut (spec §16.9 item 2). Seed dataset is 9 hand-written dialogues (spec asks 24–36; extend with LLM drafts + human review).
 - Echo heuristic can only hide the later segment of a pair (comment in code).
 
+## v2 (2026-10-28, after the first real two-phone test)
+See `docs/IMPROVEMENTS_V2.md` (evidence → root causes → changes → status). Highlights: note schema v2 (items, per-shop totals computed in code, places, schedule, needs), prompt v2, Hinglish/Marathi number words, scenario word boosting for en-IN (measured −19 % relative WER), QR + one-tap consent/join + auto-start, call-style UI with mic meter and silent-mic warning, server audio-health logs, PDF/WhatsApp/CSV export, `/end` race fix, no IPs in logs.
+Tests: backend 36, frontend 12, e2e 2 — all green. LLM spend $0.011 / $0.20.
+Dev DB `backend/data/saar.db` was deleted for the v2 schema (adds `rooms.scenario`; no migrations — data is 24 h-ephemeral by design).
+
 ## Next (blocked on human)
 1. ~~Keys + smoke~~ done.
 2. Checkpoint B: LiveKit Cloud creds + HTTPS route for phones (cloudflared) → real two-phone test (`docs/DEVICE_TEST.md`).

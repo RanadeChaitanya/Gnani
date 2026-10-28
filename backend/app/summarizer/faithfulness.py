@@ -1,33 +1,27 @@
-"""Deterministic faithfulness check (§12.4): numbers and names in the note must appear in the transcript."""
+"""Deterministic faithfulness check (§12.4), v2 schema: every number, name and place in the note must be
+traceable to the transcript (digits or spoken number words), every citation must exist, and any total a
+speaker stated must agree with the code-computed sum when all prices are known."""
 import re
 import unicodedata
 from typing import Any
 
 from rapidfuzz import fuzz
 
+from ..numbers import ascii_digits, clean, word_numbers
+from .schema import compute_costs
+
 _NUM = re.compile(r"\d+(?:[.,]\d+)*")
-
-_UNITS = {
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
-    "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15,
-    "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40,
-    "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
-    "एक": 1, "दो": 2, "तीन": 3, "चार": 4, "पाँच": 5, "पांच": 5, "छह": 6, "सात": 7, "आठ": 8, "नौ": 9, "दस": 10,
-    "ek": 1, "do": 2, "teen": 3, "char": 4, "paanch": 5, "panch": 5, "chhe": 6, "saat": 7, "aath": 8, "nau": 9, "das": 10,
-}
-_MULT = {"hundred": 100, "sau": 100, "सौ": 100, "thousand": 1000, "hazaar": 1000, "hazar": 1000, "हज़ार": 1000,
-         "हजार": 1000, "lakh": 100000, "लाख": 100000, "crore": 10**7, "करोड़": 10**7}
-
-
-def ascii_digits(text: str) -> str:
-    """Map any Unicode decimal digit (Devanagari, Tamil, …) to ASCII."""
-    return "".join(str(unicodedata.digit(c)) if unicodedata.category(c) == "Nd" else c for c in text)
+_TIME = re.compile(r"\b(\d{1,2}):\d{2}\b")
 
 
 def normalize(text: str) -> str:
     text = ascii_digits(unicodedata.normalize("NFKC", text)).casefold()
     text = re.sub(r"(?<=\d),(?=\d)", "", text)  # 5,00,000 -> 500000
-    return re.sub(r"[^\w\s.]", " ", text)
+    return clean(text, keep=".")
+
+
+def _fmt(v: float) -> str:
+    return str(int(v)) if float(v) == int(v) else str(v)
 
 
 def numbers(text: str) -> set[str]:
@@ -35,45 +29,39 @@ def numbers(text: str) -> set[str]:
     for m in _NUM.findall(normalize(text)):
         m = m.rstrip(".")
         out.add(m)
-        if m.endswith(".00") or m.endswith(".0"):
+        if re.fullmatch(r"\d+\.0+", m):
             out.add(m.split(".")[0])
     return out
 
 
-def word_numbers(text: str) -> set[str]:
-    """Basic en/hi number words -> digit strings ("five hundred" -> 500)."""
-    out: set[str] = set()
-    total = cur = 0
-    seen = False
-    for tok in normalize(text).split() + [""]:
-        if tok in _UNITS:
-            cur += _UNITS[tok]
-            seen = True
-        elif tok in _MULT and seen:
-            m = _MULT[tok]
-            if m == 100:
-                cur = (cur or 1) * 100
-            else:
-                total += (cur or 1) * m
-                cur = 0
-        elif seen:
-            out.add(str(total + cur))
-            total = cur = 0
-            seen = False
+def _texts(n: dict[str, Any]) -> list[tuple[str, str]]:
+    """(field, text) pairs scanned for numbers. Uncertain spans are excluded: they are flagged by design."""
+    out = [("title", n.get("title", ""))] + [(f"summary[{i}]", s) for i, s in enumerate(n.get("summary", []))]
+    for f in ("requirements", "decisions"):
+        out += [(f"{f}[{i}]", x["text"]) for i, x in enumerate(n.get(f, []))]
+    out += [(f"action_items[{i}]", f"{a['task']} {a.get('due') or ''}") for i, a in enumerate(n.get("action_items", []))]
+    out += [(f"schedule[{i}]", f"{s['what']} {s['when']}") for i, s in enumerate(n.get("schedule", []))]
     return out
 
 
-def _texts(note: dict[str, Any]) -> list[tuple[str, str]]:
-    """(field, text) pairs to scan for numbers. Uncertain spans are excluded: they are flagged by design."""
-    out = [("title", note.get("title", ""))]
-    out += [(f"summary[{i}]", s) for i, s in enumerate(note.get("summary", []))]
-    for f in ("key_points", "decisions"):
-        out += [(f"{f}[{i}]", x["text"]) for i, x in enumerate(note.get(f, []))]
-    for i, a in enumerate(note.get("action_items", [])):
-        out += [(f"action_items[{i}]", " ".join(str(a.get(k) or "") for k in ("task", "owner", "due")))]
-    for k, vals in (note.get("entities") or {}).items():
-        out += [(f"entities.{k}[{i}]", v) for i, v in enumerate(vals)]
+def _values(n: dict[str, Any]) -> list[tuple[str, float]]:
+    out = []
+    for i, it in enumerate(n.get("items", [])):
+        out += [(f"items[{i}].{k}", it[k]) for k in ("quantity", "unit_price", "total_price") if it.get(k) is not None]
+    out += [(f"stated_totals[{i}]", t["amount"]) for i, t in enumerate(n.get("stated_totals", []))]
     return out
+
+
+def _names(n: dict[str, Any]) -> list[tuple[str, str]]:
+    out = [(f"parties[{i}]", p["name"]) for i, p in enumerate(n.get("parties", []))]
+    out += [(f"locations[{i}]", loc["name"]) for i, loc in enumerate(n.get("locations", []))]
+    out += [(f"items[{i}].shop", it["shop"]) for i, it in enumerate(n.get("items", [])) if it.get("shop")]
+    out += [(f"action_items[{i}].owner", a["owner"]) for i, a in enumerate(n.get("action_items", [])) if a.get("owner")]
+    return out
+
+
+CITED = ("requirements", "items", "stated_totals", "locations", "schedule", "decisions", "action_items",
+         "uncertain_spans")
 
 
 def check(note: dict[str, Any], segments: list[dict[str, Any]], names: list[str]) -> dict[str, Any]:
@@ -84,27 +72,40 @@ def check(note: dict[str, Any], segments: list[dict[str, Any]], names: list[str]
     flags: list[dict[str, Any]] = []
     checked = 0
 
+    def miss(field: str, value: Any, reason: str = "not_found_in_transcript") -> None:
+        flags.append({"field": field, "value": value, "reason": reason})
+
     for field, text in _texts(note):
-        for n in numbers(text):
+        # times are spoken as "das baje" / "saade chaar baje": verify the hour (24 h or 12 h), not the minutes
+        for h in _TIME.findall(ascii_digits(text)):
             checked += 1
-            if n not in known:
-                flags.append({"field": field, "value": n, "reason": "not_found_in_transcript"})
-
-    ents = note.get("entities") or {}
-    proper = [(f"entities.{k}[{i}]", v) for k in ("people", "organizations", "places")
-              for i, v in enumerate(ents.get(k, []))]
-    proper += [(f"action_items[{i}].owner", a["owner"]) for i, a in enumerate(note.get("action_items", []))
-               if a.get("owner")]
-    for field, name in proper:
+            if not {h.lstrip("0") or "0", str(int(h) - 12)} & known:
+                miss(field, f"{h}:xx")
+        for num in numbers(_TIME.sub(" ", ascii_digits(text))):
+            checked += 1
+            if num not in known:
+                miss(field, num)
+    for field, v in _values(note):
         checked += 1
-        n = normalize(name).strip()
-        if n and n not in corpus and fuzz.partial_ratio(n, corpus) < 90:
-            flags.append({"field": field, "value": name, "reason": "not_found_in_transcript"})
-
-    for f in ("key_points", "decisions", "action_items", "uncertain_spans"):
+        if _fmt(v) not in known:
+            miss(field, _fmt(v))
+    for field, name in _names(note):
+        checked += 1
+        nn = normalize(name).strip()
+        if nn and nn not in corpus and fuzz.partial_ratio(nn, corpus) < 90:
+            miss(field, name)
+    for f in CITED:
         for i, item in enumerate(note.get(f, [])):
             bad = [e for e in item.get("evidence", []) if e not in seqs]
             if bad:
-                flags.append({"field": f"{f}[{i}]", "value": bad, "reason": "bad_evidence"})
+                miss(f"{f}[{i}]", bad, "bad_evidence")
 
+    costs = compute_costs(note)
+    if costs["unpriced_items"] == 0 and costs["grand_total"] is not None:
+        for i, t in enumerate(note.get("stated_totals", [])):
+            shop = next((s for s in costs["by_shop"] if s["shop"] == t.get("shop")), None)
+            computed = shop["subtotal"] if shop else costs["grand_total"]
+            if abs(computed - t["amount"]) > 1:
+                miss(f"stated_totals[{i}]", f"said ₹{_fmt(t['amount'])}, items add up to ₹{_fmt(computed)}",
+                     "total_mismatch")
     return {"flag_count": len(flags), "flags": flags, "checked_count": checked}

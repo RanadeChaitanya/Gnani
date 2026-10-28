@@ -1,0 +1,650 @@
+[
+ {
+  "config": "en_transcribe",
+  "ref": "Hello, Doctor Arora ke saath appointment chahiye tha.",
+  "hyp": "hello doctor aurora ke saath appointment chaahiye tha",
+  "wer": 0.25,
+  "cer": 0.0392156862745098,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Rohit Verma. Mujhe do din se bukhaar hai.",
+  "hyp": "rohit verma mujhe do din se bukhar hai",
+  "wer": 0.125,
+  "cer": 0.02564102564102564,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Thursday saade chaar baje theek hai. Fees kitni hai?",
+  "hyp": "thursday sadhe chaar baje theek hai fees kitani hai",
+  "wer": 0.2222222222222222,
+  "cer": 0.06,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.",
+  "hyp": "namaste mujhe dentist ka appointment chaahiye dant mein dant hai",
+  "wer": 0.3,
+  "cer": 0.0625,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Kal gyarah baje theek hai. Mera naam Amit Shinde hai.",
+  "hyp": "kal gyarah baje theek hai mera naam amit shinde hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Theek hai, dhanyavaad.",
+  "hyp": "theek hai dhanyavad",
+  "wer": 0.3333333333333333,
+  "cer": 0.05,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Hello, mera washing machine kaam nahi kar raha, order number saat do teen chaar hai.",
+  "hyp": "hello mera washing machine kaam nahi kar raha order number saat do teen chaar hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Haan, seven two three four. Machine paani nahi nikaal rahi.",
+  "hyp": "haan 7234 machine paani nahi nikaal rahi",
+  "wer": 0.4,
+  "cer": 0.35714285714285715,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Theek hai, technician ka naam bata dijiye.",
+  "hyp": "theek hai technician ka naam bata dijiye",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Hello, mera internet do din se band hai.",
+  "hyp": "hello mera internet do din se band hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Customer number paanch paanch nau ek hai.",
+  "hyp": "customer number paanch paanch nau ek hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Theek hai, paanch baje main ghar par rahunga.",
+  "hyp": "theek hai paanch baje mein ghar per rahunga",
+  "wer": 0.25,
+  "cer": 0.046511627906976744,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.",
+  "hyp": "hello bhaiya mein meena bol rahi hoon gandhinagar se",
+  "wer": 0.3,
+  "cer": 0.03773584905660377,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.",
+  "hyp": "do kilo aata ek literature sarson ka tell aur paanch sau gram chini bhej dijiye",
+  "wer": 0.26666666666666666,
+  "cer": 0.12162162162162163,
+  "num_total": 3,
+  "num_ok": 3
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Kal subah das baje tak delivery ho jayegi?",
+  "hyp": "kal subah dus baje tak delivery ho jaayegi",
+  "wer": 0.25,
+  "cer": 0.04878048780487805,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.",
+  "hyp": "namaste dada mujhe teen kilo chaval aur do packet doodh chaahiye",
+  "wer": 0.18181818181818182,
+  "cer": 0.031746031746031744,
+  "num_total": 2,
+  "num_ok": 2
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Theek hai, aur ek dozen kele bhi add kar dijiye.",
+  "hyp": "theek hai aur ek dozen ke liye bhee add kar dijiye",
+  "wer": 0.3,
+  "cer": 0.10869565217391304,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_transcribe",
+  "ref": "Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.",
+  "hyp": "shaam ko chhah baje tak bhej dena mera naam kavita hai",
+  "wer": 0.09090909090909091,
+  "cer": 0.03773584905660377,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Hello, Doctor Arora ke saath appointment chahiye tha.",
+  "hyp": "hello doctor aurora ke saath appointment chaahiye tha",
+  "wer": 0.25,
+  "cer": 0.0392156862745098,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Rohit Verma. Mujhe do din se bukhaar hai.",
+  "hyp": "rohit verma mujhe do din se bukhar hai",
+  "wer": 0.125,
+  "cer": 0.02564102564102564,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Thursday saade chaar baje theek hai. Fees kitni hai?",
+  "hyp": "thursday sadhe chaar baje theek hai fees kitani hai",
+  "wer": 0.2222222222222222,
+  "cer": 0.06,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.",
+  "hyp": "namaste mujhe dentist ka appointment chaahiye dant mein dant hai",
+  "wer": 0.3,
+  "cer": 0.0625,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Kal gyarah baje theek hai. Mera naam Amit Shinde hai.",
+  "hyp": "kal gyarah baje theek hai mera naam amit shinde hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Theek hai, dhanyavaad.",
+  "hyp": "theek hai dhanyavad",
+  "wer": 0.3333333333333333,
+  "cer": 0.05,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Hello, mera washing machine kaam nahi kar raha, order number saat do teen chaar hai.",
+  "hyp": "hello mera washing machine kaam nahi kar raha order number saat do teen chaar hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Haan, seven two three four. Machine paani nahi nikaal rahi.",
+  "hyp": "haan seven two three four machine paani nahi nikaal rahi",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Theek hai, technician ka naam bata dijiye.",
+  "hyp": "theek hai technician ka naam bata dijiye",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Hello, mera internet do din se band hai.",
+  "hyp": "hello mera internet do din se band hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Customer number paanch paanch nau ek hai.",
+  "hyp": "customer number paanch paanch nau ek hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Theek hai, paanch baje main ghar par rahunga.",
+  "hyp": "theek hai paanch baje mein ghar per rahunga",
+  "wer": 0.25,
+  "cer": 0.046511627906976744,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.",
+  "hyp": "hello bhaiya mein meena bol rahi hoon gandhinagar se",
+  "wer": 0.3,
+  "cer": 0.03773584905660377,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.",
+  "hyp": "do kilo aata ek literature sarson ka tell aur paanch sau gram chini bhej dijiye",
+  "wer": 0.26666666666666666,
+  "cer": 0.12162162162162163,
+  "num_total": 3,
+  "num_ok": 3
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Kal subah das baje tak delivery ho jayegi?",
+  "hyp": "kal subah dus baje tak delivery ho jaayegi",
+  "wer": 0.25,
+  "cer": 0.04878048780487805,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.",
+  "hyp": "namaste dada mujhe teen kilo chaval aur do packet doodh chaahiye",
+  "wer": 0.18181818181818182,
+  "cer": 0.031746031746031744,
+  "num_total": 2,
+  "num_ok": 2
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Theek hai, aur ek dozen kele bhi add kar dijiye.",
+  "hyp": "theek hai aur ek dozen ke liye bhee add kar dijiye",
+  "wer": 0.3,
+  "cer": 0.10869565217391304,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_verbatim",
+  "ref": "Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.",
+  "hyp": "shaam ko chhah baje tak bhej dena mera naam kavita hai",
+  "wer": 0.09090909090909091,
+  "cer": 0.03773584905660377,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Hello, Doctor Arora ke saath appointment chahiye tha.",
+  "hyp": "hello doctor aurora ke saath appointment chaahiye tha",
+  "wer": 0.25,
+  "cer": 0.0392156862745098,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Rohit Verma. Mujhe do din se bukhaar hai.",
+  "hyp": "rohit verma mujhe do din se bukhar hai",
+  "wer": 0.125,
+  "cer": 0.02564102564102564,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_bias",
+  "ref": "Thursday saade chaar baje theek hai. Fees kitni hai?",
+  "hyp": "thursday sadhe chaar baje theek hai fees kitani hai",
+  "wer": 0.2222222222222222,
+  "cer": 0.06,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.",
+  "hyp": "namaste mujhe dentist ka appointment chaahiye dant mein dant hai",
+  "wer": 0.3,
+  "cer": 0.0625,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Kal gyarah baje theek hai. Mera naam Amit Shinde hai.",
+  "hyp": "kal gyarah baje theek hai mera naam amit shinde hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Theek hai, dhanyavaad.",
+  "hyp": "theek hai dhanyavad",
+  "wer": 0.3333333333333333,
+  "cer": 0.05,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Hello, mera washing machine kaam nahi kar raha, order number saat do teen chaar hai.",
+  "hyp": "hello mera washing machine kaam nahi kar raha order number saat do teen chaar hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_bias",
+  "ref": "Haan, seven two three four. Machine paani nahi nikaal rahi.",
+  "hyp": "haan seven two three four machine paani nahi nikaal rahi",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Theek hai, technician ka naam bata dijiye.",
+  "hyp": "theek hai technician ka naam bata dijiye",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Hello, mera internet do din se band hai.",
+  "hyp": "hello mera internet do din se band hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_bias",
+  "ref": "Customer number paanch paanch nau ek hai.",
+  "hyp": "customer number paanch paanch nau ek hai",
+  "wer": 0.0,
+  "cer": 0.0,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_bias",
+  "ref": "Theek hai, paanch baje main ghar par rahunga.",
+  "hyp": "theek hai paanch baje mein ghar per rahunga",
+  "wer": 0.25,
+  "cer": 0.046511627906976744,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_bias",
+  "ref": "Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.",
+  "hyp": "hello bhaiya mein meena bol rahi hoon gandhinagar se",
+  "wer": 0.3,
+  "cer": 0.03773584905660377,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.",
+  "hyp": "do kilo atta ek litre sarson ka tel aur paanch sau gram chini bhej dijiye",
+  "wer": 0.06666666666666667,
+  "cer": 0.02702702702702703,
+  "num_total": 3,
+  "num_ok": 3
+ },
+ {
+  "config": "en_bias",
+  "ref": "Kal subah das baje tak delivery ho jayegi?",
+  "hyp": "kal subah dus baje tak delivery ho jaayegi",
+  "wer": 0.25,
+  "cer": 0.04878048780487805,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "en_bias",
+  "ref": "Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.",
+  "hyp": "namaste dada mujhe teen kilo chaval aur do packet doodh chaahiye",
+  "wer": 0.18181818181818182,
+  "cer": 0.031746031746031744,
+  "num_total": 2,
+  "num_ok": 2
+ },
+ {
+  "config": "en_bias",
+  "ref": "Theek hai, aur ek dozen kele bhi add kar dijiye.",
+  "hyp": "theek hai aur ek dozen ke liye bhee add kar dijiye",
+  "wer": 0.3,
+  "cer": 0.10869565217391304,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "en_bias",
+  "ref": "Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.",
+  "hyp": "shaam ko chhah baje tak bhej dena mera naam kavita hai",
+  "wer": 0.09090909090909091,
+  "cer": 0.03773584905660377,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Hello, Doctor Arora ke saath appointment chahiye tha.",
+  "hyp": "हेलो, डॉक्टर अरोरा के साथ अपॉइंटमेंट चाहिए था।",
+  "wer": 0.625,
+  "cer": 0.27450980392156865,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Rohit Verma. Mujhe do din se bukhaar hai.",
+  "hyp": "रोहित वर्मा, मुझे 2 दिन से बुखार है।",
+  "wer": 0.625,
+  "cer": 0.1794871794871795,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Thursday saade chaar baje theek hai. Fees kitni hai?",
+  "hyp": "थर्सडे 04:30 बजे ठीक है, फीस कितनी है?",
+  "wer": 0.6666666666666666,
+  "cer": 0.4,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Namaste, mujhe dentist ka appointment chahiye, daant mein dard hai.",
+  "hyp": "नमस्ते, मुझे डेंटिस्ट का अपॉइंटमेंट चाहिए, दाँत में दर्द है।",
+  "wer": 0.6,
+  "cer": 0.21875,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Kal gyarah baje theek hai. Mera naam Amit Shinde hai.",
+  "hyp": "कल 11:00 बजे ठीक है, मेरा नाम अमित शिंदे है।",
+  "wer": 0.6,
+  "cer": 0.27450980392156865,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Theek hai, dhanyavaad.",
+  "hyp": "ठीक है, धन्यवाद।",
+  "wer": 0.6666666666666666,
+  "cer": 0.25,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Hello, mera washing machine kaam nahi kar raha, order number saat do teen chaar hai.",
+  "hyp": "हेलो, मेरा वाशिंग मशीन काम नहीं कर रहा, ऑर्डर नंबर 7 2 3 4 है।",
+  "wer": 0.8,
+  "cer": 0.37037037037037035,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Haan, seven two three four. Machine paani nahi nikaal rahi.",
+  "hyp": "हाँ 7234 मशीन पानी नहीं निकाल रही।",
+  "wer": 0.9,
+  "cer": 0.48214285714285715,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Theek hai, technician ka naam bata dijiye.",
+  "hyp": "ठीक है, टेक्नीशियन का नाम बता दीजिए।",
+  "wer": 0.5714285714285714,
+  "cer": 0.3,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Hello, mera internet do din se band hai.",
+  "hyp": "हेलो, मेरा इंटरनेट 2 दिन से बंद है।",
+  "wer": 0.625,
+  "cer": 0.2631578947368421,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Customer number paanch paanch nau ek hai.",
+  "hyp": "कस्टमर नंबर 5 5 9 1 है।",
+  "wer": 0.8571428571428571,
+  "cer": 0.6,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Theek hai, paanch baje main ghar par rahunga.",
+  "hyp": "ठीक है, 05:00 बजे मैं घर पर रहूँगा।",
+  "wer": 0.625,
+  "cer": 0.27906976744186046,
+  "num_total": 1,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Hello bhaiya, main Meena bol rahi hoon, Gandhi Nagar se.",
+  "hyp": "हेलो भैया, मैं मीना बोल रही हूँ, गांधी नगर से।",
+  "wer": 0.7,
+  "cer": 0.16981132075471697,
+  "num_total": 0,
+  "num_ok": 0
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Do kilo atta, ek litre sarson ka tel aur paanch sau gram cheeni bhej dijiye.",
+  "hyp": "2 किलो आटा, एक लिट्रेस अरसुन का टेल और 500 ग्राम चीनी भेज दीजिए।",
+  "wer": 0.8666666666666667,
+  "cer": 0.33783783783783783,
+  "num_total": 3,
+  "num_ok": 3
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Kal subah das baje tak delivery ho jayegi?",
+  "hyp": "कल सुबह 10:00 बजे तक डिलीवरी हो जाएगी?",
+  "wer": 0.75,
+  "cer": 0.2682926829268293,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Namaste dada, mujhe teen kilo chawal aur do packet doodh chahiye.",
+  "hyp": "नमस्ते दादा, मुझे 3 किलो चवाल और 2 पैकेट दूध चाहिए।",
+  "wer": 0.6363636363636364,
+  "cer": 0.23809523809523808,
+  "num_total": 2,
+  "num_ok": 2
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Theek hai, aur ek dozen kele bhi add kar dijiye.",
+  "hyp": "ठीक है, और एक डज़न के लिए भी ऐड कर दीजिए।",
+  "wer": 0.9,
+  "cer": 0.30434782608695654,
+  "num_total": 1,
+  "num_ok": 1
+ },
+ {
+  "config": "hi_transcribe",
+  "ref": "Shaam ko chhe baje tak bhej dena, mera naam Kavita hai.",
+  "hyp": "शाम 06:00 बजे तक भेज देना, मेरा नाम कविता है।",
+  "wer": 0.5454545454545454,
+  "cer": 0.22641509433962265,
+  "num_total": 1,
+  "num_ok": 0
+ }
+]

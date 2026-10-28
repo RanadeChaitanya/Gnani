@@ -229,3 +229,18 @@ async def test_rotation_keeps_transcripts(fake: FakeGnani) -> None:
     assert len([e for e in events if e["type"] == "transcript"]) == 6
     assert fake.total_connections >= 4
     assert "reconnecting" not in statuses  # rotations are planned, not reconnects
+
+
+async def test_double_end_makes_one_note_and_preview(server: str, fake: FakeGnani) -> None:
+    async with httpx.AsyncClient() as c:
+        code, host, guest = await setup_room(server, c)
+        pv = (await c.get(f"http://{server}/api/rooms/{code}/preview")).json()
+        assert pv["host_name"] == "Asha" and pv["full"] is True and "participant" not in json.dumps(pv)
+        a, _ = await open_stt(server, code, host["token"])
+        await speak(a)
+        await asyncio.sleep(2)
+        r1, r2 = await asyncio.gather(c.post(f"http://{server}/api/rooms/{code}/end", headers=H(host)),
+                                      c.post(f"http://{server}/api/rooms/{code}/end", headers=H(guest)))
+        assert r1.json()["final_note_id"] == r2.json()["final_note_id"]
+        notes = (await c.get(f"http://{server}/api/rooms/{code}/notes", headers=H(host))).json()
+        assert len([n for n in notes if n["kind"] == "final"]) == 1

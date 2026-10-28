@@ -19,6 +19,7 @@ class Room(SQLModel, table=True):
     code: str = Field(unique=True, index=True)
     status: str = "lobby"  # lobby | active | ended
     solo: bool = False
+    scenario: str = "general"  # shop | appointment | complaint | general
     created_at: datetime = Field(default_factory=now)
     started_at: datetime | None = None
     ended_at: datetime | None = None

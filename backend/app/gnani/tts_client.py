@@ -1,4 +1,5 @@
 """Gnani Timbre TTS REST helper (used by smoke tests and the eval harness)."""
+import asyncio
 import struct
 
 import httpx
@@ -17,9 +18,13 @@ def fix_wav_header(b: bytes) -> bytes:
 
 async def synthesize(c: httpx.AsyncClient, s: Settings, text: str, voice: str, lang: str,
                      sample_rate: int = 16000) -> bytes:
-    r = await c.post(f"{s.gnani_base_url}/api/v1/tts/inference", headers={"X-API-Key-ID": s.gnani_api_key},
-                     json={"text": text, "voice": voice, "model": "timbre-v2.5", "language": lang,
-                           "audio_config": {"sample_rate": sample_rate, "num_channels": 1, "sample_width": 2,
-                                            "encoding": "linear_pcm", "container": "wav"}})
+    for attempt in range(6):  # Gnani rate-limits TTS (429); back off 1, 2, 4, 8, 16 s
+        r = await c.post(f"{s.gnani_base_url}/api/v1/tts/inference", headers={"X-API-Key-ID": s.gnani_api_key},
+                         json={"text": text, "voice": voice, "model": "timbre-v2.5", "language": lang,
+                               "audio_config": {"sample_rate": sample_rate, "num_channels": 1, "sample_width": 2,
+                                                "encoding": "linear_pcm", "container": "wav"}})
+        if r.status_code not in (429, 500, 503) or attempt == 5:
+            break
+        await asyncio.sleep(2**attempt)
     r.raise_for_status()
     return fix_wav_header(r.content)

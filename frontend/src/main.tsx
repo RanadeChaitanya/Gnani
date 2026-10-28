@@ -9,7 +9,7 @@ import Notes from "./pages/Notes";
 import NoteDetail from "./pages/NoteDetail";
 import Privacy from "./pages/Privacy";
 import RoomPage from "./pages/Room";
-import Setup from "./pages/Setup";
+import Enter from "./pages/Enter";
 import "./styles.css";
 
 function JoinRedirect() {
@@ -32,11 +32,11 @@ function App() {
           {lang === "en" ? "हिं" : "EN"}
         </button>
       </header>
-      {demo && <div className="banner" role="note">{t("demo")}</div>}
+      {demo && <div className="demo-strip" role="note">{t("demo")}</div>}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/setup" element={<Setup />} />
+          <Route path="/setup" element={<Enter />} />
           <Route path="/join/:code" element={<JoinRedirect />} />
           <Route path="/room/:code" element={<RoomPage />} />
           <Route path="/notes" element={<Notes />} />

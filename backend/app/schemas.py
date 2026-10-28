@@ -6,9 +6,9 @@ from pydantic import BaseModel, Field, field_validator
 from .gnani.stt_client import validate_bias_words
 
 LANGUAGES = [
-    {"code": "en-IN", "label": "English / Hinglish", "native": "English"},
-    {"code": "hi-IN", "label": "Hindi", "native": "हिन्दी"},
-    {"code": "mr-IN", "label": "Marathi", "native": "मराठी"},
+    {"code": "en-IN", "label": "Hinglish / English (Roman letters)", "native": "Hinglish"},
+    {"code": "hi-IN", "label": "Hindi (देवनागरी)", "native": "हिन्दी"},
+    {"code": "mr-IN", "label": "Marathi (मराठी)", "native": "मराठी"},
     {"code": "bn-IN", "label": "Bengali", "native": "বাংলা"},
     {"code": "gu-IN", "label": "Gujarati", "native": "ગુજરાતી"},
     {"code": "kn-IN", "label": "Kannada", "native": "ಕನ್ನಡ"},
@@ -42,6 +42,7 @@ class JoinRequest(BaseModel):
 
 class CreateRoomRequest(JoinRequest):
     solo: bool = False
+    scenario: Literal["shop", "appointment", "complaint", "general"] = "general"
 
 
 class ConsentRequest(BaseModel):

@@ -12,12 +12,15 @@ export type AppConfig = {
   notice: Notice;
   version: string;
 };
-export type Participant = { id: string; name: string; role: string; lang_code: string; consent: string };
+export type Participant = { id: string; name: string; role: string; lang_code: string; consent: string; online: boolean };
+export type Scenario = "shop" | "appointment" | "complaint" | "general";
+export type Preview = { host_name: string | null; scenario: Scenario; status: string; full: boolean; notice: Notice };
 export type RoomState = {
   status: "lobby" | "active" | "ended";
   participants: Participant[];
   all_consented: boolean;
   solo: boolean;
+  scenario: Scenario;
 };
 export type Session = {
   room_code: string;
@@ -40,18 +43,38 @@ export type Segment = {
   possible_echo: boolean;
   latency_ms?: number;
 };
-type Cited = { text: string; evidence: number[] };
+type Ev = { evidence: number[] };
+type Cited = { text: string; original?: string | null } & Ev;
+export type Item = {
+  name: string;
+  quantity: number | null;
+  unit: string | null;
+  unit_price: number | null;
+  total_price: number | null;
+  shop: string | null;
+} & Ev;
 export type NoteContent = {
   title: string;
   note_language: string;
+  conversation_type: "order" | "appointment" | "complaint" | "general";
   summary: string[];
-  key_points: Cited[];
+  parties: { name: string; role: string }[];
+  requirements: Cited[];
+  items: Item[];
+  stated_totals: ({ amount: number; shop: string | null } & Ev)[];
+  locations: ({ name: string; kind: string } & Ev)[];
+  schedule: ({ what: string; when: string; where: string | null } & Ev)[];
   decisions: Cited[];
-  action_items: { task: string; owner: string | null; due: string | null; evidence: number[] }[];
-  entities: Record<"people" | "organizations" | "places" | "dates" | "amounts", string[]>;
+  action_items: ({ task: string; owner: string | null; due: string | null } & Ev)[];
   open_questions: string[];
-  uncertain_spans: { text: string; reason: string; evidence: number[] }[];
+  uncertain_spans: ({ text: string; reason: string } & Ev)[];
   conversation_languages: string[];
+};
+export type Costs = {
+  by_shop: { shop: string | null; subtotal: number; priced: number; unpriced: number }[];
+  grand_total: number | null;
+  unpriced_items: number;
+  stated_totals: NoteContent["stated_totals"];
 };
 export type Flag = { field: string; value: string | number[]; reason: string };
 export type NotePayload = {
@@ -65,6 +88,7 @@ export type NotePayload = {
   participants: string[];
   langs: string[];
   note: NoteContent | null;
+  costs: Costs | null;
   faithfulness: { flag_count: number; flags: Flag[]; checked_count: number } | null;
   transcript: { seq: number; participant_id: string; name: string; text: string; started_at: number }[];
 };

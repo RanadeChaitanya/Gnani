@@ -47,6 +47,8 @@ class RoomHub:
         self.stt: dict[str, SttSessionLike] = {}
         self.levels: dict[str, float] = {}
         self.stt_failed = False
+        self.lock = asyncio.Lock()
+        self.online: dict[str, int] = {}  # participant_id -> open room sockets
         self.usage_base = _db_usage_seconds(code)
 
     # ---- broadcast ----
@@ -138,10 +140,12 @@ def room_state(room: Room) -> dict[str, Any]:
     return {
         "status": room.status,
         "participants": [{"id": p.id, "name": p.display_name, "role": p.role, "lang_code": p.lang_code,
-                          "consent": p.consent} for p in parts],
+                          "consent": p.consent, "online": hubs[room.code].online.get(p.id, 0) > 0
+                          if room.code in hubs else False} for p in parts],
         "all_consented": bool(parts) and all(p.consent == "granted" for p in parts),
         "started_at": room.started_at.isoformat() if room.started_at else None,
         "solo": room.solo,
+        "scenario": room.scenario,
     }
 
 
@@ -159,7 +163,9 @@ async def room_ws(ws: WebSocket, code: str) -> None:
             return
         hub = get_hub(code)
         hub.sockets.add(ws)
-        await ws.send_json({"type": "room_state", **room_state(room)})
+        me = claims.participant_id
+        hub.online[me] = hub.online.get(me, 0) + 1
+        await hub.broadcast({"type": "room_state", **room_state(room)})
         await ws.send_json({"type": "capture_state", "active": room.status == "active"})
         while True:
             m = json.loads(await ws.receive_text())
@@ -168,5 +174,11 @@ async def room_ws(ws: WebSocket, code: str) -> None:
     except (WebSocketDisconnect, asyncio.TimeoutError, json.JSONDecodeError, RuntimeError):
         pass
     finally:
-        if code in hubs:
-            hubs[code].sockets.discard(ws)
+        if code in hubs and ws in hubs[code].sockets:
+            hub = hubs[code]
+            hub.sockets.discard(ws)
+            hub.online[me] = hub.online.get(me, 1) - 1
+            with session() as s:
+                room = s.exec(select(Room).where(Room.code == code)).first()
+            if room:
+                await hub.broadcast({"type": "room_state", **room_state(room)})

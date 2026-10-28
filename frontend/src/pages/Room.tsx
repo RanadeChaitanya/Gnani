@@ -1,31 +1,21 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import QRCode from "qrcode";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
-import { getMic, startCapture } from "../audio/capture";
+import type { Room as LkRoom } from "livekit-client";
+import { startCapture } from "../audio/capture";
+import { EndIcon, MicIcon, MicOffIcon, NoteIcon, ShareIcon, StopIcon } from "../components/icons";
 import { api, ApiError, AppConfig, getConfig, loadSession, NotePayload, RoomState, Segment } from "../lib/api";
 import { useT } from "../lib/i18n";
-import type { Call } from "../lib/livekit";
+import { media, prepareMedia, releaseMedia } from "../lib/media";
 import { saveNote } from "../lib/notesDb";
 
 type Provisional = { id: string; text: string; latency_ms: number };
 const wsUrl = (path: string) => `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}${path}`;
-
-/** Renders the notice's **bold** markers without HTML injection. */
-function Bold({ text }: { text: string }) {
-  return (
-    <>
-      {text.split("\n").map((line, i) => (
-        <p key={i}>
-          {line.split(/\*\*(.+?)\*\*/g).map((part, j) => (j % 2 ? <strong key={j}>{part}</strong> : <Fragment key={j}>{part}</Fragment>))}
-        </p>
-      ))}
-    </>
-  );
-}
+const SILENT_RMS = 0.01;
 
 export default function RoomPage() {
   const { code = "" } = useParams();
-  const session = loadSession(code);
-  if (!session) return <Navigate to={`/setup?mode=join&code=${code}`} replace />;
+  if (!loadSession(code)) return <Navigate to={`/join/${code}`} replace />;
   return <Room code={code} />;
 }
 
@@ -39,8 +29,8 @@ function Room({ code }: { code: string }) {
   const [capture, setCapture] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [prov, setProv] = useState<Provisional[]>([]);
-  const [speaking, setSpeaking] = useState<Record<string, number>>({});
   const [partials, setPartials] = useState<Record<string, string>>({});
+  const [speaking, setSpeaking] = useState<Record<string, number>>({});
   const [upstream, setUpstream] = useState("");
   const [muted, setMuted] = useState(false);
   const [hidden, setHidden] = useState(document.visibilityState === "hidden");
@@ -50,47 +40,26 @@ function Room({ code }: { code: string }) {
   const [debug, setDebug] = useState(false);
   const [quality, setQuality] = useState("");
   const [audioBlocked, setAudioBlocked] = useState(false);
-  const [noticeLang, setNoticeLang] = useState<"en" | "hi">("en");
+  const [mediaReady, setMediaReady] = useState(!!media.mic);
+  const [level, setLevel] = useState(0);
+  const [qr, setQr] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [, tick] = useState(0);
-  const stats = useRef({ gnani: [] as number[], eos: [] as number[], dropped: 0, reconnects: 0, used: 0, limit: 0, lastLoud: 0, frames: 0 });
-  const ctxRef = useRef<AudioContext | null>(null);
-  const callRef = useRef<Call | null>(null);
-  const micRef = useRef<MediaStreamTrack | null>(null);
+  const stats = useRef({ gnani: [] as number[], dropped: 0, reconnects: 0, used: 0, limit: 0, frames: 0, lastLoud: 0, capSince: 0, lastLevelSent: 0 });
+  const callRef = useRef<LkRoom | null>(null);
   const sttRef = useRef<WebSocket | null>(null);
   const stopCapRef = useRef<(() => void) | null>(null);
   const pausedRef = useRef(false);
   const wantRef = useRef(false);
   const endedNav = useRef(false);
+  const autoStarted = useRef(false);
+  const bottom = useRef<HTMLDivElement>(null);
+  const joinUrl = `${location.origin}/join/${code}`;
 
-  useEffect(() => {
-    getConfig().then(setCfg).catch((e) => setErr(e.message));
-  }, []);
+  useEffect(() => void getConfig().then(setCfg).catch((e) => setErr(e.message)), []);
+  useEffect(() => void QRCode.toDataURL(joinUrl, { margin: 1, width: 240 }).then(setQr), [joinUrl]);
 
   // ---------- room events ----------
-  useEffect(() => {
-    let ws: WebSocket;
-    let alive = true;
-    let retry = 0;
-    const connect = () => {
-      ws = new WebSocket(wsUrl(`/ws/room/${code}`));
-      ws.onopen = () => {
-        retry = 0;
-        ws.send(JSON.stringify({ type: "auth", token: session.token }));
-      };
-      ws.onmessage = (e) => onRoomEvent(JSON.parse(e.data));
-      ws.onclose = () => alive && setTimeout(connect, Math.min(8000, 500 * 2 ** retry++));
-    };
-    connect();
-    const ping = setInterval(() => ws.readyState === WebSocket.OPEN && ws.send('{"type":"ping"}'), 15000);
-    return () => {
-      alive = false;
-      clearInterval(ping);
-      ws.close();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code]);
-
   const onRoomEvent = useCallback(async (m: Record<string, any>) => {
     switch (m.type) {
       case "room_state":
@@ -100,7 +69,7 @@ function Room({ code }: { code: string }) {
         setCapture(m.active);
         if (m.active) setStartedAt((s) => s ?? Date.now());
         if (!m.active && m.reason === "consent_revoked") setInfo(m.by === me ? "You stopped transcription." : "The other person stopped transcription.");
-        if (!m.active && m.reason === "budget") setErr("This room used its transcription budget. End the call to get the note.");
+        if (!m.active && m.reason === "budget") setErr("This call used its transcription budget. End the call to get the note.");
         break;
       case "processing":
         setSpeaking((s) => ({ ...s, [m.participant_id]: Date.now() }));
@@ -142,7 +111,43 @@ function Room({ code }: { code: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---------- my STT pipeline ----------
+  useEffect(() => {
+    let ws: WebSocket;
+    let alive = true;
+    let retry = 0;
+    const connect = () => {
+      ws = new WebSocket(wsUrl(`/ws/room/${code}`));
+      ws.onopen = () => {
+        retry = 0;
+        ws.send(JSON.stringify({ type: "auth", token: session.token }));
+      };
+      ws.onmessage = (e) => onRoomEvent(JSON.parse(e.data));
+      ws.onclose = () => alive && setTimeout(connect, Math.min(8000, 500 * 2 ** retry++));
+    };
+    connect();
+    const ping = setInterval(() => ws.readyState === WebSocket.OPEN && ws.send('{"type":"ping"}'), 15000);
+    return () => {
+      alive = false;
+      clearInterval(ping);
+      ws.close();
+    };
+  }, [code, session.token, onRoomEvent]);
+
+  // ---------- voice call (LiveKit), publishing the same mic track transcription uses ----------
+  useEffect(() => {
+    if (!mediaReady || !session.call || !cfg || callRef.current) return;
+    let cancelled = false;
+    import("../lib/livekit") // ~550 kB, only when there is a call
+      .then(({ joinCall }) => joinCall(session.call!.url, session.call!.token, media.mic!, setQuality, setAudioBlocked))
+      .then((room) => {
+        if (cancelled) void room.disconnect(false); // keep our mic track alive for transcription
+        else callRef.current = room;
+      })
+      .catch(() => setInfo("Voice call couldn't connect — captions still work."));
+    return () => void (cancelled = true);
+  }, [mediaReady, session.call, cfg]);
+
+  // ---------- my transcription pipeline ----------
   const stopStt = useCallback(() => {
     wantRef.current = false;
     stopCapRef.current?.();
@@ -154,15 +159,8 @@ function Room({ code }: { code: string }) {
   }, []);
 
   const startStt = useCallback(async (attempt = 0) => {
-    if (!cfg) return;
+    if (!media.ctx || !media.mic || media.mic.readyState === "ended") return setMediaReady(false); // show "Connect microphone"
     wantRef.current = true;
-    if (!window.isSecureContext) return setErr(t("insecure"));
-    try {
-      ctxRef.current ??= new AudioContext();
-      micRef.current ??= callRef.current?.mic ?? (await getMic(cfg.mic));
-    } catch {
-      return setErr(t("micDenied"));
-    }
     const ws = new WebSocket(wsUrl(`/ws/stt/${code}`));
     ws.binaryType = "arraybuffer";
     sttRef.current = ws;
@@ -175,10 +173,9 @@ function Room({ code }: { code: string }) {
       const m = JSON.parse(e.data);
       if (m.type === "ready") {
         setUpstream("connected");
+        stats.current.capSince = Date.now();
         if (pausedRef.current) ws.send('{"type":"pause"}');
-        stopCapRef.current = await startCapture(
-          ctxRef.current!,
-          micRef.current!,
+        stopCapRef.current = await startCapture(media.ctx!, media.mic!,
           (frame) => {
             if (ws.readyState !== WebSocket.OPEN || pausedRef.current) return;
             if (ws.bufferedAmount > 65536) return void stats.current.dropped++; // never block on a slow link
@@ -186,13 +183,15 @@ function Room({ code }: { code: string }) {
             stats.current.frames++;
           },
           (rms) => {
-            if (rms > 0.02) stats.current.lastLoud = Date.now();
-            if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "level", rms }));
-          },
-        );
+            setLevel(rms);
+            if (rms > SILENT_RMS) stats.current.lastLoud = Date.now();
+            if (Date.now() - stats.current.lastLevelSent > 500 && ws.readyState === WebSocket.OPEN) {
+              stats.current.lastLevelSent = Date.now();
+              ws.send(JSON.stringify({ type: "level", rms }));
+            }
+          });
       } else if (m.type === "transcript") {
         stats.current.gnani.push(m.latency_ms);
-        if (stats.current.lastLoud) stats.current.eos.push(Date.now() - stats.current.lastLoud);
         setProv((p) => [...p, { id: m.upstream_segment_id, text: m.text, latency_ms: m.latency_ms }]);
         setPartials((p) => ({ ...p, [me]: "" }));
       } else if (m.type === "upstream_status") {
@@ -212,15 +211,28 @@ function Room({ code }: { code: string }) {
       if (sttRef.current === ws) sttRef.current = null;
       if (wantRef.current && !final && attempt < 5) setTimeout(() => wantRef.current && startStt(attempt + 1), 1000 * 2 ** attempt);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfg, code]);
+  }, [code, session.token, me]);
 
   const myConsent = state?.participants.find((p) => p.id === me)?.consent;
   useEffect(() => {
-    if (capture && myConsent === "granted" && cfg) startStt();
+    if (capture && myConsent === "granted" && mediaReady) startStt();
     else stopStt();
     return stopStt;
-  }, [capture, myConsent, cfg, startStt, stopStt]);
+  }, [capture, myConsent, mediaReady, startStt, stopStt]);
+
+  // host starts transcription automatically once everyone has agreed (the host agreed to exactly that)
+  const parts = state?.participants ?? [];
+  const canStart = !!state && state.all_consented && (state.solo || parts.length === 2);
+  useEffect(() => {
+    if (state?.status !== "lobby") return void (autoStarted.current = false);
+    if (session.role === "host" && canStart && !autoStarted.current) {
+      autoStarted.current = true;
+      api(`/api/rooms/${code}/start`, { body: {}, token: session.token }).catch((e) => {
+        autoStarted.current = false;
+        setErr(e instanceof ApiError ? e.message : String(e));
+      });
+    }
+  }, [state, canStart, code, session.role, session.token]);
 
   // mute / background → pause (no silence is streamed, nothing is billed)
   useEffect(() => {
@@ -233,27 +245,23 @@ function Room({ code }: { code: string }) {
     document.addEventListener("visibilitychange", f);
     return () => document.removeEventListener("visibilitychange", f);
   }, []);
-
-  // wake lock while capturing
   useEffect(() => {
     if (!capture || hidden || !("wakeLock" in navigator)) return;
     let lock: WakeLockSentinel | null = null;
     navigator.wakeLock.request("screen").then((l) => (lock = l)).catch(() => {});
     return () => void lock?.release();
   }, [capture, hidden]);
-
-  // timer + speaking indicator refresh
   useEffect(() => {
     const i = setInterval(() => tick((x) => x + 1), 500);
     return () => clearInterval(i);
   }, []);
-
-  // full teardown on leave
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ block: "end" }); // newer Chrome returns a Promise here: never return it as cleanup
+  }, [segments.length, prov.length, partials]);
   useEffect(() => () => {
     stopStt();
-    callRef.current?.room.disconnect();
-    micRef.current?.stop();
-    ctxRef.current?.close();
+    callRef.current?.disconnect();
+    releaseMedia();
   }, [stopStt]);
 
   // ---------- actions ----------
@@ -266,86 +274,62 @@ function Room({ code }: { code: string }) {
       return null;
     }
   };
+  const consent = (action: "grant" | "revoke") => call("/consent", "POST", { action, notice_version: session.notice.version });
 
-  async function agree() {
-    // user gesture: unlock audio and join the voice call now
-    ctxRef.current ??= new AudioContext();
-    ctxRef.current.resume();
-    await call("/consent", "POST", { action: "grant", notice_version: session.notice.version });
-    if (session.call && !callRef.current && cfg) {
-      try {
-        const { joinCall } = await import("../lib/livekit"); // ~550 kB, only when there is a call
-        callRef.current = await joinCall(session.call.url, session.call.token, cfg.mic, setQuality, setAudioBlocked);
-        micRef.current = callRef.current.mic;
-      } catch {
-        setInfo("Voice call couldn't connect; captions still work if you use another call.");
-      }
+  async function connectAudio() {
+    try {
+      await prepareMedia();
+      setMediaReady(true);
+    } catch (x) {
+      setErr(t((x as Error).message === "insecure" ? "insecure" : "micDenied"));
     }
   }
 
   async function toggleMute() {
     const next = !muted;
     setMuted(next);
-    await callRef.current?.room.localParticipant.setMicrophoneEnabled(!next);
+    if (callRef.current) {
+      const { setCallMuted } = await import("../lib/livekit");
+      await setCallMuted(callRef.current, next);
+    } else if (media.mic) media.mic.enabled = !next;
   }
 
   async function end() {
     await call("/end");
     stopStt();
-    callRef.current?.room.disconnect();
+    callRef.current?.disconnect();
     callRef.current = null;
   }
 
   async function share() {
-    const url = `${location.origin}/join/${code}`;
-    if (navigator.share) await navigator.share({ title: "Join my Saar call", url }).catch(() => {});
+    if (navigator.share) await navigator.share({ title: "Join my Saar call", url: joinUrl }).catch(() => {});
     else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(joinUrl);
       setInfo(t("copied"));
     }
   }
 
   // ---------- render ----------
-  if (!state) return <p className="muted">Connecting…</p>;
-  const parts = state.participants;
+  if (!state) return <p className="muted center">{t("joining")}</p>;
+  const other = parts.find((p) => p.id !== me);
   const nameOf = (id: string) => parts.find((p) => p.id === id)?.name ?? "?";
   const visible = segments.filter((s) => debug || !s.possible_echo);
-  const others = Object.entries(speaking).filter(([, ts]) => ts && Date.now() - ts < 4000).map(([id]) => nameOf(id));
   const elapsed = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
-  const canStart = state.all_consented && (state.solo || parts.length === 2);
+  const clock = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
+  const live = capture && myConsent === "granted" && !muted && !hidden;
+  const silent = live && stats.current.capSince > 0 && Date.now() - stats.current.capSince > 4000 && Date.now() - stats.current.lastLoud > 4000;
   const avg = (a: number[]) => (a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : 0);
-
-  const captions = (
-    <section className="captions" aria-live="polite" aria-label="Live captions">
-      {visible.map((s) => (
-        <div key={s.seq} id={`seg-${s.seq}`} className={`bubble ${s.participant_id === me ? "mine" : ""} ${s.possible_echo ? "echo" : ""}`}>
-          <div className="who"><span>{s.name}</span><span>#{s.seq}</span>{s.latency_ms ? <span>{s.latency_ms} ms</span> : null}</div>
-          <div dir="auto" lang={s.lang_code}>{s.text}</div>
-        </div>
-      ))}
-      {prov.map((p) => (
-        <div key={p.id} className="bubble mine prov">
-          <div className="who"><span>{nameOf(me)} ·</span><span>{p.latency_ms} ms</span></div>
-          <div dir="auto">{p.text}</div>
-        </div>
-      ))}
-      {Object.entries(partials).filter(([, txt]) => txt).map(([pid, txt]) => (
-        <div key={`p-${pid}`} className={`bubble prov ${pid === me ? "mine" : ""}`} aria-hidden="true">
-          <div className="who"><span>{nameOf(pid)} …</span></div>
-          <div dir="auto">{txt}</div>
-        </div>
-      ))}
-      {others.length > 0 && <p className="muted">{others.join(", ")} {t("speaking")}</p>}
-    </section>
-  );
 
   const banners = (
     <>
+      {!mediaReady && <button className="primary big" onClick={connectAudio}>🎙️ Connect microphone</button>}
       {err && <div className="error" role="alert">{err}</div>}
-      {audioBlocked && <button className="primary" onClick={() => callRef.current?.room.startAudio()}>🔊 Tap to hear the other person</button>}
+      {audioBlocked && <button className="primary" onClick={() => callRef.current?.startAudio()}>🔊 {t("tapAudio")}</button>}
+      {silent && <div className="banner warn" role="alert">🎙️ {t("micSilent")}</div>}
+      {hidden && <div className="banner">{t("keepOpen")}</div>}
       {info && <div className="banner" role="status">{info}</div>}
       {noteMsg && (
-        <div className="banner" role="status">
+        <div className="banner ok" role="status">
           {noteMsg.text} {noteMsg.id && <button className="small" onClick={() => nav(`/notes/${noteMsg.id}`)}>{t("open")}</button>}
         </div>
       )}
@@ -354,94 +338,102 @@ function Room({ code }: { code: string }) {
 
   if (state.status === "ended")
     return (
-      <>
+      <div className="stack">
         <h1>{t("ended")}</h1>
         {banners}
         {!noteMsg && segments.length > 0 && <p className="muted">{t("noteMaking")}</p>}
-        <button onClick={() => nav("/notes")}>{t("notes")}</button>
+        <button className="primary" onClick={() => nav("/notes")}>{t("notes")}</button>
         <button className="danger" onClick={() => call("/data", "DELETE")}>{t("deleteServer")}</button>
-      </>
+      </div>
     );
 
-  if (state.status === "active")
+  const header = (
+    <div className="callcard">
+      <div className="avatar">{state.solo ? "🎙️" : (other?.name[0] ?? "?").toUpperCase()}</div>
+      <div className="grow">
+        <div className="callname">{state.solo ? t("solo") : other?.name ?? t("waitingFor")}</div>
+        <div className="muted small-text">
+          {state.solo ? clock : other ? `${other.online ? t("online") : t("away")} · ${clock}` : code}
+          {quality && ` · ${quality}`}
+        </div>
+      </div>
+      <span className={`rec ${live ? "" : "off"}`}>{live ? t("transcribing") : t("paused")}</span>
+    </div>
+  );
+
+  if (state.status === "lobby")
     return (
-      <>
-        <div className="callbar">
-          <span className={`rec ${capture && myConsent === "granted" && !muted && !hidden ? "" : "off"}`}>
-            {capture && !muted && !hidden ? t("transcribing") : t("paused")}
-          </span>
-          <span className="muted">{code} · {String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}</span>
-          {quality && <span className="chip">{quality}</span>}
-          {upstream && upstream !== "connected" && <span className="chip warn">{upstream}</span>}
-          <button className="small" style={{ marginLeft: "auto" }} onClick={() => setDebug(!debug)} aria-pressed={debug}>{t("debug")}</button>
-        </div>
+      <div className="stack">
+        {(state.solo || other) && header}
         {banners}
-        {hidden && <div className="banner">{t("keepOpen")}</div>}
-        {!state.solo && segments.length === 0 && <p className="muted">{t("earphones")}</p>}
-        {debug && (
-          <pre className="debug">{[
-            `Gnani latency avg ${avg(stats.current.gnani)} ms (n=${stats.current.gnani.length})`,
-            `end-of-speech → caption (approx) avg ${avg(stats.current.eos)} ms`,
-            `frames sent ${stats.current.frames}, client-dropped ${stats.current.dropped}`,
-            `upstream ${upstream || "-"}, reconnects ${stats.current.reconnects}`,
-            `segments ${segments.length} (echo-hidden ${segments.filter((s) => s.possible_echo).length})`,
-            `room audio ${stats.current.used}/${stats.current.limit || cfg?.max_stt_seconds} s`,
-          ].join("\n")}</pre>
+        {myConsent !== "granted" ? (
+          <section className="card stack">
+            <p>{t("needConsent")}</p>
+            <div className="row">
+              <button className="primary grow" onClick={() => consent("grant")}>{t("agree")}</button>
+              <button className="grow" onClick={() => nav("/")}>{t("disagree")}</button>
+            </div>
+          </section>
+        ) : !state.solo && parts.length < 2 ? (
+          <section className="card center stack">
+            <h2>{t("waitingFor")}</h2>
+            <p className="muted">{t("scanToJoin")}</p>
+            {qr && <img src={qr} width={240} height={240} alt={`QR code to join call ${code}`} className="qr" />}
+            <div className="code">{code}</div>
+            <button className="primary" onClick={share}><ShareIcon size={18} /> {t("share")}</button>
+          </section>
+        ) : (
+          <p className="muted center">{t("hostStarts")}</p>
         )}
-        {captions}
-        <div className="controls">
-          <button onClick={toggleMute} aria-pressed={muted}>{muted ? t("unmute") : t("mute")}</button>
-          <button onClick={() => call("/notes/quick")}>{t("quickNote")}</button>
-          <button className="danger" onClick={() => call("/consent", "POST", { action: "revoke", notice_version: session.notice.version })}>{t("revoke")}</button>
-          <button className="primary" onClick={end}>{t("end")}</button>
-        </div>
-      </>
+        {!state.solo && <p className="muted center">{t("earphones")}</p>}
+      </div>
     );
 
-  // lobby + consent
+  const others = Object.entries(speaking).filter(([id, ts]) => id !== me && ts && Date.now() - ts < 4000).map(([id]) => nameOf(id));
   return (
-    <>
-      {!state.solo && (
-        <div className="card row">
-          <div className="grow"><div className="muted">{t("code")}</div><div className="code">{code}</div></div>
-          <button onClick={share}>{t("share")}</button>
-        </div>
-      )}
+    <div className="callscreen">
+      {header}
       {banners}
-      <ul className="card" aria-label="Participants" style={{ listStyle: "none", padding: 14 }}>
-        {parts.map((p) => (
-          <li key={p.id} className="row">
-            <span className="grow">{p.name}{p.id === me ? " (you)" : ""} · {p.lang_code}</span>
-            <span className={`chip ${p.consent === "granted" ? "" : "warn"}`}>
-              {p.consent === "granted" ? `✔ ${t("agreed")}` : p.consent === "revoked" ? t("declined") : t("waiting")}
-            </span>
-          </li>
+      {upstream && upstream !== "connected" && <div className="banner">Transcription: {upstream}…</div>}
+      {debug && (
+        <pre className="debug">{[
+          `Gnani latency avg ${avg(stats.current.gnani)} ms (n=${stats.current.gnani.length})`,
+          `frames sent ${stats.current.frames}, dropped ${stats.current.dropped}, mic level ${level.toFixed(3)}`,
+          `upstream ${upstream || "-"}, reconnects ${stats.current.reconnects}`,
+          `segments ${segments.length} (echo hidden ${segments.filter((s) => s.possible_echo).length})`,
+          `audio used ${stats.current.used}/${stats.current.limit || cfg?.max_stt_seconds} s`,
+        ].join("\n")}</pre>
+      )}
+      <section className="captions" aria-live="polite" aria-label="Live captions">
+        {visible.length === 0 && prov.length === 0 && <p className="muted center">Start talking — captions appear here on both phones.</p>}
+        {visible.map((s) => (
+          <div key={s.seq} id={`seg-${s.seq}`} className={`bubble ${s.participant_id === me ? "mine" : ""} ${s.possible_echo ? "echo" : ""}`}>
+            <div className="who">{s.name}</div>
+            <div dir="auto" lang={s.lang_code}>{s.text}</div>
+          </div>
         ))}
-        {!state.solo && parts.length < 2 && <li className="muted">Waiting for the other person to join…</li>}
-      </ul>
-      {myConsent !== "granted" && (
-        <section className="card notice stack" aria-labelledby="notice-h">
-          <div className="row">
-            <h2 id="notice-h" className="grow">Consent · सहमति</h2>
-            <button className="small" onClick={() => setNoticeLang(noticeLang === "en" ? "hi" : "en")}>{noticeLang === "en" ? "हिन्दी" : "English"}</button>
+        {prov.map((p) => (
+          <div key={p.id} className="bubble mine prov"><div className="who">{nameOf(me)}</div><div dir="auto">{p.text}</div></div>
+        ))}
+        {Object.entries(partials).filter(([, txt]) => txt).map(([pid, txt]) => (
+          <div key={`p-${pid}`} className={`bubble live ${pid === me ? "mine" : ""}`} aria-hidden="true">
+            <div className="who">{nameOf(pid)} …</div><div dir="auto">{txt}</div>
           </div>
-          <div dir="auto"><Bold text={noticeLang === "en" ? session.notice.text_en : session.notice.text_hi} /></div>
-          <div className="row">
-            <button className="primary grow" onClick={agree}>{t("agree")}</button>
-            <button className="grow" onClick={() => call("/consent", "POST", { action: "revoke", notice_version: session.notice.version })}>{t("disagree")}</button>
-          </div>
-        </section>
-      )}
-      {session.role === "host" ? (
-        <button className="primary" disabled={!canStart} onClick={() => call("/start")}>
-          {t("startTranscribing")}
+        ))}
+        {others.length > 0 && !Object.values(partials).some(Boolean) && <p className="muted">{others.join(", ")} {t("speaking")}</p>}
+        <div ref={bottom} />
+      </section>
+      <nav className="controls" aria-label="Call controls">
+        <button className={`ctl ${muted ? "on" : ""}`} onClick={toggleMute} aria-pressed={muted}>
+          <span className="ring" style={{ boxShadow: muted ? "none" : `0 0 0 ${Math.min(8, level * 120)}px var(--accent-soft)` }}>
+            {muted ? <MicOffIcon /> : <MicIcon />}
+          </span>{muted ? t("unmute") : t("mute")}
         </button>
-      ) : (
-        myConsent === "granted" && <p className="muted">{t("hostStarts")}</p>
-      )}
-      {!canStart && <p className="muted">{t("needBoth")}</p>}
-      {segments.length > 0 && captions}
-      {segments.length > 0 && <button className="primary" onClick={end}>{t("end")}</button>}
-    </>
+        <button className="ctl" onClick={() => call("/notes/quick")}><span className="ring"><NoteIcon /></span>{t("quickNote")}</button>
+        <button className="ctl" onClick={() => consent("revoke")}><span className="ring"><StopIcon /></span>{t("revoke")}</button>
+        <button className="ctl end" onClick={end}><span className="ring"><EndIcon /></span>{t("end")}</button>
+      </nav>
+      <button className="linkish" onClick={() => setDebug(!debug)} aria-pressed={debug}>{t("debug")}</button>
+    </div>
   );
 }

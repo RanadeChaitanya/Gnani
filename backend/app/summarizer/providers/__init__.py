@@ -92,19 +92,16 @@ class MockProvider:
             return self.responses.pop(0), {"input_tokens": 0, "output_tokens": 0}
         lines = re.findall(r"^#(\d+) \[[\d:]+\] ([^:]+): (.*)$", user, re.M)
         seqs = [int(n) for n, _, _ in lines] or [1]
-        note = {
-            "title": "Conversation note",
-            "note_language": "en",
+        note: dict[str, Any] = {
+            "title": "Conversation note", "note_language": "en", "conversation_type": "general",
             "summary": [f"{who}: {text}"[:120] for _, who, text in lines[:3]] or ["(no speech captured)"],
-            "key_points": [{"text": text[:120], "evidence": [int(n)]} for n, _, text in lines[:3]],
-            "decisions": [], "action_items": [],
-            "entities": {"people": sorted({who for _, who, _ in lines}), "organizations": [], "places": [],
-                         "dates": [], "amounts": []},
-            "open_questions": [], "uncertain_spans": [],
+            "parties": [{"name": who, "role": "participant"} for who in sorted({w for _, w, _ in lines})],
+            "requirements": [{"text": text[:120], "original": text[:120], "evidence": [int(n)]}
+                             for n, _, text in lines[:3]] or [{"text": "No transcript", "evidence": seqs}],
+            "items": [], "stated_totals": [], "locations": [], "schedule": [], "decisions": [],
+            "action_items": [], "open_questions": [], "uncertain_spans": [],
             "conversation_languages": sorted(set(re.findall(r"\((\w\w-IN)\)", user))),
         }
-        if not lines:
-            note["key_points"] = [{"text": "No transcript", "evidence": seqs}]
         return note, {"input_tokens": len(user) // 4, "output_tokens": 200}
 
 

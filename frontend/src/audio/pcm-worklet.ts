@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-// AudioWorklet: own mic → 16 kHz → 1,024-byte frames posted to the main thread; RMS every 500 ms.
+// AudioWorklet: own mic → 16 kHz → 1,024-byte frames posted to the main thread; RMS every 100 ms.
 import { Framer, Resampler } from "./resampler";
 
 declare const sampleRate: number;
@@ -20,7 +20,7 @@ class Pcm16k extends AudioWorkletProcessor {
     for (const b of this.f.push(this.r.process(ch))) this.port.postMessage(b, [b]);
     for (let i = 0; i < ch.length; i++) this.sq += ch[i] * ch[i];
     this.count += ch.length;
-    if (this.count >= sampleRate / 2) {
+    if (this.count >= sampleRate / 10) {
       this.port.postMessage({ rms: Math.sqrt(this.sq / this.count) });
       this.sq = this.count = 0;
     }

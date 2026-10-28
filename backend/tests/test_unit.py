@@ -16,6 +16,7 @@ from app.models import Room, Segment, now
 from app.notice import NOTICE_VERSION
 from app.retention import purge
 from app.summarizer import faithfulness, service
+from app.summarizer.schema import compute_costs
 from app.summarizer.providers import MockProvider
 from app.ws.room_hub import RoomHub
 
@@ -156,42 +157,79 @@ async def test_echo_dedupe_marks_later_or_quieter() -> None:
     assert [e["possible_echo"] for e in got] == [False, True, False]
 
 
-# ---------------- faithfulness ----------------
+# ---------------- faithfulness, totals, numbers (v2 schema) ----------------
 
-SEGS = [{"seq": 1, "text": "Mujhe do kilo atta aur ₹५०० ka tel chahiye"},
-        {"seq": 2, "text": "Ramesh will deliver it on 15th March by five thirty"}]
+SEGS = [{"seq": 1, "text": "Bhaiya do kilo atta aur ek litre tel, atta pachas rupaye kilo"},
+        {"seq": 2, "text": "Tel ek sau chalis ka. Total do sau chalis hua. Ramesh Gandhi Nagar mein kal das baje dega"}]
 
 
 def _note(**kw: object) -> dict[str, object]:
-    n: dict[str, object] = {"title": "Order", "summary": ["Atta and oil order"], "key_points": [
-        {"text": "Oil worth ₹500", "evidence": [1]}], "decisions": [],
-        "action_items": [{"task": "Deliver on 15th March", "owner": "Ramesh", "due": "15th March", "evidence": [2]}],
-        "entities": {"people": ["Ramesh"], "organizations": [], "places": [], "dates": ["15th March"],
-                     "amounts": ["₹500"]}, "uncertain_spans": []}
+    n: dict[str, object] = {
+        "title": "Atta and oil order", "note_language": "en", "conversation_type": "order",
+        "summary": ["2 kg atta and 1 litre oil, total ₹240"],
+        "parties": [{"name": "Ramesh", "role": "shopkeeper"}],
+        "requirements": [{"text": "2 kg atta", "original": "do kilo atta", "evidence": [1]}],
+        "items": [{"name": "atta", "quantity": 2, "unit": "kg", "unit_price": 50, "evidence": [1]},
+                  {"name": "oil", "quantity": 1, "unit": "litre", "total_price": 140, "evidence": [2]}],
+        "stated_totals": [{"amount": 240, "evidence": [2]}],
+        "locations": [{"name": "Gandhi Nagar", "kind": "delivery", "evidence": [2]}],
+        "schedule": [{"what": "delivery", "when": "tomorrow 10:00", "where": "Gandhi Nagar", "evidence": [2]}],
+        "action_items": [{"task": "Deliver order", "owner": "Ramesh", "due": "tomorrow 10:00", "evidence": [2]}],
+        "uncertain_spans": []}
     n.update(kw)
     return n
 
 
-def test_faithfulness_clean_note_passes() -> None:
+def test_faithfulness_clean_hinglish_note_passes() -> None:
+    """Digits in the note are verified against Hinglish number words in the transcript."""
     r = faithfulness.check(_note(), SEGS, ["Asha", "Ravi"])
-    assert r["flag_count"] == 0 and r["checked_count"] > 0
+    assert r["flags"] == [] and r["checked_count"] >= 10
 
 
 def test_faithfulness_seeded_hallucinations_flagged() -> None:
-    bad = _note(key_points=[{"text": "Total ₹9,999", "evidence": [1]}, {"text": "x", "evidence": [7]}],
-                entities={"people": ["Ramesh", "Suresh Kumar"], "organizations": [], "places": [], "dates": [],
-                          "amounts": []})
+    bad = _note(items=[{"name": "atta", "quantity": 2, "unit_price": 50, "evidence": [1]},
+                       {"name": "ghee", "quantity": 1, "total_price": 9999, "shop": "Suresh Stores", "evidence": [7]}],
+                locations=[{"name": "Andheri West", "kind": "delivery", "evidence": [2]}])
     r = faithfulness.check(bad, SEGS, [])
     vals = {(f["value"] if isinstance(f["value"], str) else tuple(f["value"]), f["reason"]) for f in r["flags"]}
     assert ("9999", "not_found_in_transcript") in vals
-    assert ("Suresh Kumar", "not_found_in_transcript") in vals
+    assert ("Suresh Stores", "not_found_in_transcript") in vals
+    assert ("Andheri West", "not_found_in_transcript") in vals
     assert ((7,), "bad_evidence") in vals
 
 
-def test_number_words_and_indic_digits() -> None:
-    assert faithfulness.ascii_digits("₹५,०००") == "₹5,000"
-    assert "500" in faithfulness.word_numbers("five hundred rupees")
-    assert "200000" in faithfulness.word_numbers("do lakh")
+def test_costs_computed_by_code_and_mismatch_flagged() -> None:
+    costs = compute_costs(_note())
+    assert costs["grand_total"] == 240 and costs["unpriced_items"] == 0
+    wrong = _note(stated_totals=[{"amount": 250, "evidence": [2]}])
+    reasons = [f["reason"] for f in faithfulness.check(wrong, SEGS + [{"seq": 3, "text": "do sau pachas"}], [])["flags"]]
+    assert "total_mismatch" in reasons
+
+
+def test_costs_group_by_shop_and_count_unpriced() -> None:
+    c = compute_costs({"items": [{"name": "a", "quantity": 2, "unit_price": 10, "shop": "X"},
+                                 {"name": "b", "total_price": 5, "shop": "Y"}, {"name": "c", "shop": "Y"}]})
+    assert {(s["shop"], s["subtotal"], s["unpriced"]) for s in c["by_shop"]} == {("X", 20, 0), ("Y", 5, 1)}
+    assert c["grand_total"] == 25 and c["unpriced_items"] == 1
+
+
+def test_number_words_hinglish_marathi_devanagari() -> None:
+    from app.numbers import ascii_digits, word_numbers
+    assert ascii_digits("₹५,०००") == "₹5,000"
+    assert "280" in word_numbers("total do sau assi rupaye")
+    assert "250" in word_numbers("dhai sau gram")
+    assert "3.5" in word_numbers("saade teen baje")
+    assert "200000" in word_numbers("do lakh")
+    assert {"10", "50"} <= word_numbers("दहा किलो, पन्नास रुपये") and "1" not in word_numbers("एकूण")
+    assert {"10", "50"} <= word_numbers("das kilo, pachas rupaye")
+
+
+def test_lexicon_only_for_hinglish_and_user_words_first() -> None:
+    from app.lexicon import bias_words
+    w = bias_words("shop", "en-IN", ["Meena"])
+    assert w[0] == "Meena" and "atta" in w and len(w) <= 100
+    assert bias_words("shop", "mr-IN", ["Meena"]) == ["Meena"]
+    validate_bias_words(w)  # all valid for Gnani
 
 
 # ---------------- summarizer retry ----------------
@@ -210,7 +248,8 @@ async def _room_with_segments() -> Room:
     return room
 
 
-VALID = {"title": "T", "note_language": "en", "summary": ["s"], "key_points": [{"text": "two kilo", "evidence": [2]}]}
+VALID = {"title": "T", "note_language": "en", "conversation_type": "order", "summary": ["s"],
+         "items": [{"name": "atta", "quantity": 2, "unit": "kg", "evidence": [2]}]}
 
 
 async def _wait_note() -> dict[str, object]:

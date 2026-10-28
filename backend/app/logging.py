@@ -40,3 +40,5 @@ def setup_logging(level: str) -> None:
         lg = logging.getLogger(name)
         lg.handlers[:] = []
         lg.propagate = True
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)  # access lines carry client IPs: never log them
+    logging.getLogger("httpx").setLevel(logging.WARNING)

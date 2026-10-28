@@ -77,7 +77,8 @@ async def create_room(req: CreateRoomRequest) -> dict[str, Any]:
             code = new_room_code()
             if not s.exec(select(Room).where(Room.code == code)).first():
                 break
-        room = Room(code=code, solo=req.solo, notice_version=NOTICE_VERSION, demo_mode=get_settings().demo_mode)
+        room = Room(code=code, solo=req.solo, scenario=req.scenario, notice_version=NOTICE_VERSION,
+                    demo_mode=get_settings().demo_mode)
         s.add(room)
         s.commit()
     return _add_participant(room, req, "host")
@@ -93,6 +94,16 @@ async def join_room(code: str, req: JoinRequest) -> dict[str, Any]:
     out = _add_participant(room, req, "guest")
     await get_hub(room.code).broadcast({"type": "room_state", **room_state(room)})
     return out
+
+
+@router.get("/rooms/{code}/preview")
+async def preview(code: str) -> dict[str, Any]:
+    """Public, minimal: lets the join screen say who invited you. No transcript, no ids."""
+    room = _room(code)
+    parts = _participants(room.id)
+    host = next((p for p in parts if p.role == "host"), None)
+    return {"host_name": host.display_name if host else None, "scenario": room.scenario, "status": room.status,
+            "full": room.solo or len(parts) >= 2, "notice": notice_dict()}
 
 
 @router.get("/rooms/{code}")
@@ -157,7 +168,13 @@ def _segment_count(room_id: str) -> int:
 
 @router.post("/rooms/{code}/end")
 async def end(ra: tuple[Room, Claims] = Depends(auth)) -> dict[str, Any]:
-    room, _ = ra
+    hub = get_hub(ra[0].code)
+    async with hub.lock:  # both phones may press End at once: exactly one final note
+        return await _end(ra[0].code)
+
+
+async def _end(code: str) -> dict[str, Any]:
+    room = _room(code)  # re-read inside the lock
     with session() as s:
         existing = s.exec(select(Note).where(Note.room_id == room.id, Note.kind == "final")).first()
     if room.status == "ended":

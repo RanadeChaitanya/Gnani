@@ -1,80 +1,73 @@
 import { expect, Page, test } from "@playwright/test";
 
-async function setup(page: Page, url: string, name: string, lang: string) {
+async function enter(page: Page, url: string, name: string, lang: string, button: RegExp) {
   await page.goto(url);
   await page.getByLabel(/Your name/).fill(name);
-  await page.getByLabel(/I speak in/).selectOption(lang);
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByLabel(/speak in/).selectOption(lang);
+  await page.getByRole("button", { name: button }).click();
   await expect(page).toHaveURL(/\/room\//);
 }
 
-test("two phones: consent gating, captions on both, quick note, revoke, delete", async ({ browser }) => {
+const live = (p: Page) => p.getByText("Transcribing", { exact: true });
+
+test("two phones: one-tap consent, auto start, live captions on both, note, stop, delete", async ({ browser }) => {
   const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 };
-  const hostCtx = await browser.newContext(phone);
-  const guestCtx = await browser.newContext(phone);
+  const host = await (await browser.newContext(phone)).newPage();
+  const guest = await (await browser.newContext(phone)).newPage();
   const shot = (p: Page, name: string) => p.screenshot({ path: `../docs/screenshots/${name}.png` });
-  const host = await hostCtx.newPage();
-  const guest = await guestCtx.newPage();
 
-  await setup(host, "/setup?mode=create", "Asha", "en-IN");
+  await enter(host, "/setup?mode=create", "Asha", "en-IN", /Agree & start call/);
+  // consent gating: nothing is transcribed while the host is alone
+  await expect(host.getByText("Waiting for the other person").first()).toBeVisible();
+  await expect(host.getByRole("img", { name: /QR code/ })).toBeVisible();
+  await expect(live(host)).toHaveCount(0);
+  await shot(host, "1-lobby-qr");
   const code = (await host.locator(".code").textContent())!.trim();
-  await setup(guest, `/join/${code}`, "Ravi", "mr-IN");
 
-  // consent gating: host cannot start until both agree
-  const start = host.getByRole("button", { name: "Start transcribing" });
-  await expect(host.getByText("Ravi · mr-IN")).toBeVisible();
-  await expect(start).toBeDisabled();
-  await host.getByRole("button", { name: "I agree" }).click();
-  await expect(start).toBeDisabled();
-  await guest.getByRole("button", { name: "I agree" }).click();
-  await expect(start).toBeEnabled();
-  await shot(host, "1-lobby-consent");
-  await start.click();
+  await guest.goto(`/join/${code}`);
+  await expect(guest.getByText("invited you to a call")).toBeVisible();
+  await shot(guest, "0-join");
+  await enter(guest, `/join/${code}`, "Ravi", "mr-IN", /Agree & join/);
 
-  // live captions from BOTH speakers appear on BOTH phones
+  // starts by itself once both agreed; captions from BOTH speakers on BOTH phones
   for (const p of [host, guest]) {
-    await expect(p.getByText("Transcribing", { exact: true })).toBeVisible();
+    await expect(live(p)).toBeVisible({ timeout: 10_000 });
     const captions = p.getByLabel("Live captions");
     await expect(captions.getByText("Namaste, mujhe do kilo atta chahiye").first()).toBeVisible({ timeout: 20_000 });
     await expect(captions.getByText("हो, ₹२५० होतील").first()).toBeVisible({ timeout: 20_000 });
   }
-
   await shot(guest, "2-call-captions");
 
-  // quick note lands in Notes on both devices
   await expect(async () => {
-    await host.getByRole("button", { name: "Quick note" }).click();
-    await expect(host.getByText("Note saved to Notes")).toBeVisible({ timeout: 3000 });
+    await host.getByRole("button", { name: "Note now" }).click();
+    await expect(host.getByText("Note ready")).toBeVisible({ timeout: 3000 });
   }).toPass({ timeout: 30_000 });
-  await expect(guest.getByText("Note saved to Notes")).toBeVisible();
+  await expect(guest.getByText("Note ready")).toBeVisible();
 
-  // revoke on the guest stops capture for everyone
-  await guest.getByRole("button", { name: "Revoke consent / Stop" }).click();
-  for (const p of [host, guest]) {
-    await expect(p.getByText("Starts when everyone has agreed")).toBeVisible();
-    await expect(p.getByText("Transcribing", { exact: true })).toHaveCount(0);
-  }
+  // stop on the guest stops capture for everyone
+  await guest.getByRole("button", { name: "Stop" }).click();
+  for (const p of [host, guest]) await expect(live(p)).toHaveCount(0);
   await expect(host.getByText("The other person stopped transcription.")).toBeVisible();
+  await expect(guest.getByRole("button", { name: "I agree" })).toBeVisible();
 
-  // note is in the guest's local Notes, opens, and can be deleted
   await guest.goto("/notes");
   const card = guest.locator(".card").filter({ hasText: "quick" });
   await expect(card).toHaveCount(1);
   await card.getByRole("link").click();
   await expect(guest.getByRole("heading", { name: "Summary" })).toBeVisible();
+  await expect(guest.getByRole("button", { name: /WhatsApp/ })).toBeVisible();
   await shot(guest, "3-note");
   guest.once("dialog", (d) => d.accept());
   await guest.getByRole("button", { name: "Delete" }).click();
   await expect(guest.getByText("No notes yet")).toBeVisible();
 });
 
-test("third person gets a clear room-full error", async ({ browser }) => {
+test("third person sees the call is full before joining", async ({ browser }) => {
   const [a, b, c] = await Promise.all([1, 2, 3].map(async () => (await browser.newContext()).newPage()));
-  await setup(a, "/setup?mode=create", "A", "en-IN");
+  await enter(a, "/setup?mode=create", "A", "en-IN", /Agree & start call/);
   const code = (await a.locator(".code").textContent())!.trim();
-  await setup(b, `/join/${code}`, "B", "hi-IN");
+  await enter(b, `/join/${code}`, "B", "hi-IN", /Agree & join/);
   await c.goto(`/join/${code}`);
-  await c.getByLabel(/Your name/).fill("C");
-  await c.getByRole("button", { name: "Continue" }).click();
-  await expect(c.getByRole("alert")).toHaveText(/already has two people/);
+  await expect(c.getByText("This call already has two people.")).toBeVisible();
+  await expect(c.getByRole("button", { name: /Agree & join/ })).toBeDisabled();
 });

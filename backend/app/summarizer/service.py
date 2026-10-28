@@ -13,7 +13,7 @@ from ..models import Note, Participant, Room, Segment, Usage
 from ..ws.room_hub import get_hub
 from . import faithfulness, prompts
 from .providers import BudgetExceeded, LLMProvider, make_provider
-from .schema import NoteContent, json_schema
+from .schema import NoteContent, compute_costs, json_schema
 
 log = logging.getLogger("saar.notes")
 _provider: LLMProvider | None = None
@@ -53,6 +53,7 @@ def note_payload(note: Note, room: Room) -> dict[str, Any]:
         "created_at": note.created_at.isoformat(), "model": note.model, "error": note.error,
         "participants": [p.display_name for p in parts], "langs": sorted({p.lang_code for p in parts}),
         "note": json.loads(note.note_json) if note.note_json else None,
+        "costs": compute_costs(json.loads(note.note_json)) if note.note_json else None,
         "faithfulness": json.loads(note.faithfulness_json) if note.faithfulness_json else None,
         "transcript": room_segments(room.id),
     }
@@ -83,7 +84,7 @@ async def _generate(note_id: str, room: Room) -> None:
     p = provider()
     system = prompts.system_prompt(json_schema())
     user = prompts.user_prompt(host.notes_lang, [{"name": x.display_name, "lang_code": x.lang_code} for x in parts],
-                               prompts.transcript_lines(segs, st.max_transcript_chars))
+                               prompts.transcript_lines(segs, st.max_transcript_chars), room.scenario)
     content: NoteContent | None = None
     err = ""
     tokens = {"input_tokens": 0, "output_tokens": 0}

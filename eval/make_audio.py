@@ -12,7 +12,7 @@ from app.gnani.tts_client import synthesize  # noqa: E402
 
 
 async def main() -> None:
-    sem = asyncio.Semaphore(3)
+    sem = asyncio.Semaphore(1)
     async with httpx.AsyncClient(timeout=90) as c:
         async def one(d: dict, i: int, turn: dict) -> None:
             p = clip_path(d, i)

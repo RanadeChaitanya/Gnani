@@ -1,19 +1,14 @@
 import { ConnectionQuality, Room, RoomEvent, Track } from "livekit-client";
-import type { MicConfig } from "../audio/capture";
 
-export type Call = { room: Room; mic: MediaStreamTrack };
-
-/** Join the audio-only app-to-app call and publish the mic. Must run after a user gesture. */
+/** Join the audio-only app-to-app call, publishing OUR mic track (the one transcription also uses). */
 export async function joinCall(
   url: string,
   token: string,
-  mic: MicConfig,
+  mic: MediaStreamTrack,
   onQuality: (q: string) => void,
   onAudioBlocked: (blocked: boolean) => void,
-): Promise<Call> {
-  const room = new Room({
-    audioCaptureDefaults: { echoCancellation: mic.aec, noiseSuppression: mic.ns, autoGainControl: mic.agc },
-  });
+): Promise<Room> {
+  const room = new Room();
   room.on(RoomEvent.TrackSubscribed, (track) => {
     if (track.kind === Track.Kind.Audio) document.body.appendChild(track.attach());
   });
@@ -24,10 +19,13 @@ export async function joinCall(
   // iOS may block playback if the tap's activation expired during the awaits below; the UI offers a tap
   room.on(RoomEvent.AudioPlaybackStatusChanged, () => onAudioBlocked(!room.canPlaybackAudio));
   await room.connect(url, token);
-  await room.localParticipant.setMicrophoneEnabled(true);
+  await room.localParticipant.publishTrack(mic, { source: Track.Source.Microphone });
   await room.startAudio().catch(() => {});
   onAudioBlocked(!room.canPlaybackAudio);
-  const track = room.localParticipant.getTrackPublication(Track.Source.Microphone)?.track?.mediaStreamTrack;
-  if (!track) throw new Error("Microphone track not available");
-  return { room, mic: track };
+  return room;
+}
+
+export async function setCallMuted(room: Room, muted: boolean): Promise<void> {
+  const pub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
+  if (pub?.track) await (muted ? pub.track.mute() : pub.track.unmute());
 }

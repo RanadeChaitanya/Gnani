@@ -129,6 +129,9 @@ class GnaniStream:
         self.pending: dict[ClientConnection, int] = {}  # processing-without-transcript per socket
         self.last_speech = 0.0
         self.frames_sent = 0
+        self.speech_frames = 0  # health only: how much of what we sent was audible speech
+        self.rms_sum = 0.0
+        self.close_codes: list[int | None] = []
         self.reconnects = 0
         self.paused = False
         self.failed = False
@@ -141,6 +144,13 @@ class GnaniStream:
     @property
     def audio_seconds(self) -> float:
         return self.frames_sent * FRAME_S
+
+    def health(self) -> dict[str, object]:
+        """Audio diagnostics without content: is the mic actually delivering speech?"""
+        n = max(1, self.frames_sent)
+        return {"seconds": round(self.audio_seconds, 1), "speech_ratio": round(self.speech_frames / n, 3),
+                "mean_level": round(self.rms_sum / n / 32768, 4), "reconnects": self.reconnects,
+                "close_codes": self.close_codes, "dropped": self.pacer.dropped}
 
     def _spawn(self, coro: Awaitable[None]) -> None:
         t: asyncio.Task[None] = asyncio.ensure_future(coro)
@@ -191,8 +201,11 @@ class GnaniStream:
             return  # reader notices and reconnects
         self.frames_sent += 1
         a = array("h", frame)
-        if sum(x * x for x in a) / len(a) > SPEECH_RMS**2:
+        ms = sum(x * x for x in a) / len(a)
+        self.rms_sum += ms**0.5
+        if ms > SPEECH_RMS**2:
             self.last_speech = time.monotonic()
+            self.speech_frames += 1
 
     async def _reader(self, ws: ClientConnection) -> None:
         try:
@@ -218,6 +231,8 @@ class GnaniStream:
         finally:
             self.pending.pop(ws, None)
             if ws is self.ws and not self.closed:
+                self.close_codes.append(ws.close_code)
+                log.warning("upstream closed unexpectedly", extra={"data": {"code": ws.close_code}})
                 self.ws = None
                 if not self.paused:
                     await self._reconnect()

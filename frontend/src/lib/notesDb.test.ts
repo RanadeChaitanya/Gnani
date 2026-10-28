@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { describe, expect, it } from "vitest";
 import type { NotePayload } from "./api";
-import { deleteNote, getNote, listNotes, renameNote, saveNote, toMarkdown } from "./notesDb";
+import { deleteNote, getNote, listNotes, renameNote, saveNote, toCSV, toMarkdown, toWhatsApp } from "./notesDb";
 
 const payload = (id: string, created: string): NotePayload => ({
   id,
@@ -16,25 +16,41 @@ const payload = (id: string, created: string): NotePayload => ({
   note: {
     title: "Atta order",
     note_language: "en",
-    summary: ["Two kilo atta, ₹250"],
-    key_points: [{ text: "Delivery tomorrow 10:00", evidence: [2] }],
+    conversation_type: "order",
+    summary: ["2 kg atta and 1 litre oil from Ravi Kirana"],
+    parties: [{ name: "Ravi", role: "shopkeeper" }],
+    requirements: [{ text: "2 kg atta", original: "do kilo atta", evidence: [1] }],
+    items: [
+      { name: "atta", quantity: 2, unit: "kg", unit_price: 50, total_price: null, shop: "Ravi Kirana", evidence: [1] },
+      { name: "oil", quantity: 1, unit: "litre", unit_price: null, total_price: 140, shop: "Ravi Kirana", evidence: [2] },
+      { name: "eggs", quantity: 12, unit: "piece", unit_price: null, total_price: null, shop: null, evidence: [2] },
+    ],
+    stated_totals: [{ amount: 240, shop: "Ravi Kirana", evidence: [2] }],
+    locations: [{ name: "Gandhi Nagar", kind: "delivery", evidence: [2] }],
+    schedule: [{ what: "delivery", when: "tomorrow 10:00", where: "Gandhi Nagar", evidence: [2] }],
     decisions: [],
     action_items: [{ task: "Deliver atta", owner: "Ravi", due: "tomorrow", evidence: [2, 3] }],
-    entities: { people: ["Ravi"], organizations: [], places: [], dates: [], amounts: ["₹250"] },
     open_questions: [],
     uncertain_spans: [],
     conversation_languages: ["en-IN", "mr-IN"],
+  },
+  costs: {
+    by_shop: [{ shop: "Ravi Kirana", subtotal: 240, priced: 2, unpriced: 0 }, { shop: null, subtotal: 0, priced: 0, unpriced: 1 }],
+    grand_total: 240,
+    unpriced_items: 1,
+    stated_totals: [{ amount: 240, shop: "Ravi Kirana", evidence: [2] }],
   },
   faithfulness: { flag_count: 1, flags: [{ field: "summary[0]", value: "9999", reason: "not_found_in_transcript" }], checked_count: 4 },
   transcript: [{ seq: 1, participant_id: "a", name: "Asha", text: "do kilo atta", started_at: 0 }],
 });
 
 describe("notesDb", () => {
-  it("saves, lists newest first, searches, renames, deletes", async () => {
+  it("saves, lists newest first, searches items and places, renames, deletes", async () => {
     await saveNote(payload("n1", "2026-10-28T10:00:00"));
     await saveNote(payload("n2", "2026-10-28T11:00:00"));
     expect((await listNotes()).map((n) => n.id)).toEqual(["n2", "n1"]);
-    expect(await listNotes("₹250")).toHaveLength(2);
+    expect(await listNotes("gandhi nagar")).toHaveLength(2);
+    expect(await listNotes("eggs")).toHaveLength(2);
     expect(await listNotes("nothing-here")).toHaveLength(0);
     await renameNote("n1", "My title");
     await saveNote(payload("n1", "2026-10-28T10:00:00")); // re-delivery keeps the user's title
@@ -43,13 +59,28 @@ describe("notesDb", () => {
     expect(await getNote("n1")).toBeUndefined();
   });
 
-  it("exports deterministic markdown", async () => {
+  it("exports markdown with an order table per shop and totals", async () => {
     const n = await saveNote(payload("n3", "2026-10-28T12:00:00"));
     const md = toMarkdown(n);
     expect(md).toContain("# Atta order");
-    expect(md).toContain("| Deliver atta | Ravi | tomorrow | #2, #3 |");
-    expect(md).toContain("## ⚠ Could not verify in transcript");
-    expect(md).toContain("#1 **Asha:** do kilo atta");
+    expect(md).toContain("**Ravi Kirana**");
+    expect(md).toContain("| atta | 2 kg | ₹100 |");
+    expect(md).toContain("| eggs | 12 piece | — |");
+    expect(md).toContain("Priced items: ₹240 (+1 without price)");
+    expect(md).toContain("- Gandhi Nagar (delivery)");
+    expect(md).toContain("## ⚠ Not found in what was said");
     expect(toMarkdown(n)).toBe(md);
+  });
+
+  it("exports WhatsApp text and CSV", async () => {
+    const n = await saveNote(payload("n4", "2026-10-28T12:00:00"));
+    const wa = toWhatsApp(n);
+    expect(wa).toContain("*Atta order*");
+    expect(wa).toContain("• atta — 2 kg — ₹100");
+    expect(wa).toContain("Priced items: ₹240 (+1 without price)");
+    expect(wa).toContain("📍 *Places*");
+    const csv = toCSV(n).split("\n");
+    expect(csv[0]).toBe('"shop","item","quantity","unit","unit_price_inr","line_total_inr"');
+    expect(csv[1]).toBe('"Ravi Kirana","atta","2","kg","50","100"');
   });
 });
