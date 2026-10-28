@@ -17,7 +17,7 @@ Evidence: test rooms 9L7E8R, LFFATE (backend/data/saar.db). Mics healthy. Errors
 Steps (mark [x] as done, commit after each):
 - [x] 1. v4 == v3 word-for-word (eval/results/v3_vs_v4.json): same model, no better key exists. Grocery A/B (eval/grocery_ab.py): hi-IN verbatim no-bias 97 %, en-IN no-bias 94 %, en-IN + v2 vocab 84 % (vocab HURT).
 - [x] 2. DONE: drop scenario vocab (lexicon.py); hi-IN + en-IN use verbatim (Saar parses numbers); default language hi-IN "Hindi / Hinglish"; user-typed names still boosted.
-- [ ] 3. DeepSeek v3 prompt: understand intent; correct misheard product names to likely words with `heard_as`; merge duplicates/crosstalk; no translation-only output.
+- [x] 3. DONE (prompt v3, schema: outcome + heard_as, no quotes/requirements; real transcripts → arhar dal recovered, "Sugar: 8 kg or 50 kg?" asked). Was: DeepSeek v3 prompt: understand intent; correct misheard product names to likely words with `heard_as`; merge duplicates/crosstalk; no translation-only output.
 - [ ] 4. Minimal UI: note = title, 1-line summary, items table, totals, when/where, one Share button; details hidden.
 - [ ] 5. Tests green, rebuild, restart backend + tunnel (tunnel URL changes!), live check, commit, report.
 

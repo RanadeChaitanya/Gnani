@@ -36,8 +36,9 @@ def numbers(text: str) -> set[str]:
 
 def _texts(n: dict[str, Any]) -> list[tuple[str, str]]:
     """(field, text) pairs scanned for numbers. Uncertain spans are excluded: they are flagged by design."""
-    out = [("title", n.get("title", ""))] + [(f"summary[{i}]", s) for i, s in enumerate(n.get("summary", []))]
-    for f in ("requirements", "decisions"):
+    out = [("title", n.get("title", "")), ("outcome", n.get("outcome", ""))]
+    out += [(f"summary[{i}]", s) for i, s in enumerate(n.get("summary", []))]
+    for f in ("decisions",):
         out += [(f"{f}[{i}]", x["text"]) for i, x in enumerate(n.get(f, []))]
     out += [(f"action_items[{i}]", f"{a['task']} {a.get('due') or ''}") for i, a in enumerate(n.get("action_items", []))]
     out += [(f"schedule[{i}]", f"{s['what']} {s['when']}") for i, s in enumerate(n.get("schedule", []))]
@@ -60,7 +61,7 @@ def _names(n: dict[str, Any]) -> list[tuple[str, str]]:
     return out
 
 
-CITED = ("requirements", "items", "stated_totals", "locations", "schedule", "decisions", "action_items",
+CITED = ("items", "stated_totals", "locations", "schedule", "decisions", "action_items",
          "uncertain_spans")
 
 
@@ -85,10 +86,12 @@ def check(note: dict[str, Any], segments: list[dict[str, Any]], names: list[str]
             checked += 1
             if num not in known:
                 miss(field, num)
+    corrected = {f"items[{i}]" for i, it in enumerate(note.get("items", [])) if it.get("heard_as")}
     for field, v in _values(note):
         checked += 1
         if _fmt(v) not in known:
-            miss(field, _fmt(v))
+            # a number the AI recovered from misheard speech is a labelled best guess, not a fabrication
+            miss(field, _fmt(v), "inferred" if field.split(".")[0] in corrected else "not_found_in_transcript")
     for field, name in _names(note):
         checked += 1
         nn = normalize(name).strip()

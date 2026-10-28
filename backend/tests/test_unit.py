@@ -166,9 +166,9 @@ SEGS = [{"seq": 1, "text": "Bhaiya do kilo atta aur ek litre tel, atta pachas ru
 def _note(**kw: object) -> dict[str, object]:
     n: dict[str, object] = {
         "title": "Atta and oil order", "note_language": "en", "conversation_type": "order",
+        "outcome": "Ramesh delivers 2 kg atta and 1 litre oil to Gandhi Nagar tomorrow at 10.",
         "summary": ["2 kg atta and 1 litre oil, total ₹240"],
         "parties": [{"name": "Ramesh", "role": "shopkeeper"}],
-        "requirements": [{"text": "2 kg atta", "original": "do kilo atta", "evidence": [1]}],
         "items": [{"name": "atta", "quantity": 2, "unit": "kg", "unit_price": 50, "evidence": [1]},
                   {"name": "oil", "quantity": 1, "unit": "litre", "total_price": 140, "evidence": [2]}],
         "stated_totals": [{"amount": 240, "evidence": [2]}],
@@ -196,6 +196,15 @@ def test_faithfulness_seeded_hallucinations_flagged() -> None:
     assert ("Suresh Stores", "not_found_in_transcript") in vals
     assert ("Andheri West", "not_found_in_transcript") in vals
     assert ((7,), "bad_evidence") in vals
+
+
+def test_corrected_item_numbers_are_labelled_inferred() -> None:
+    item = {"name": "arhar dal", "quantity": 10, "unit": "kg", "heard_as": "dais kilo har bhara daur", "evidence": [1]}
+    n = _note(items=[item], stated_totals=[])
+    assert not [f for f in faithfulness.check(n, SEGS, [])["flags"] if f["field"] == "items[0].quantity"]  # das is said
+    item["quantity"] = 12
+    reasons = {f["field"]: f["reason"] for f in faithfulness.check(n, SEGS, [])["flags"]}
+    assert reasons["items[0].quantity"] == "inferred"  # not said, but a labelled best guess
 
 
 def test_costs_computed_by_code_and_mismatch_flagged() -> None:
@@ -249,7 +258,7 @@ async def _room_with_segments() -> Room:
     return room
 
 
-VALID = {"title": "T", "note_language": "en", "conversation_type": "order", "summary": ["s"],
+VALID = {"title": "T", "note_language": "en", "conversation_type": "order", "outcome": "o", "summary": ["s"],
          "items": [{"name": "atta", "quantity": 2, "unit": "kg", "evidence": [2]}]}
 
 

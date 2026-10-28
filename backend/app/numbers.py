@@ -23,7 +23,7 @@ for v, w in zip(range(20, 100, 10), "twenty thirty forty fifty sixty seventy eig
 # Hindi (Roman spellings seen in ASR output, then Devanagari)
 _add(1, "ek", "एक"); _add(2, "do", "दो"); _add(3, "teen", "tin", "तीन"); _add(4, "char", "chaar", "चार")  # noqa: E702
 _add(5, "paanch", "panch", "paach", "पाँच", "पांच"); _add(6, "chhe", "chhah", "che", "छह", "छः")  # noqa: E702
-_add(7, "saat", "सात"); _add(8, "aath", "आठ"); _add(9, "nau", "नौ"); _add(10, "das", "dus", "दस")  # noqa: E702
+_add(7, "saat", "सात"); _add(8, "aath", "आठ"); _add(9, "nau", "नौ"); _add(10, "das", "dus", "dais", "दस")  # "dais": common ASR mishearing of das  # noqa: E702
 _add(11, "gyarah", "gyara", "ग्यारह"); _add(12, "barah", "bara", "बारह"); _add(13, "terah", "तेरह")  # noqa: E702
 _add(14, "chaudah", "चौदह"); _add(15, "pandrah", "pandra", "पंद्रह"); _add(16, "solah", "सोलह")  # noqa: E702
 _add(17, "satrah", "सत्रह"); _add(18, "atharah", "athara", "अठारह"); _add(19, "unnis", "उन्नीस")  # noqa: E702

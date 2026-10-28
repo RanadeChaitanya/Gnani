@@ -94,12 +94,13 @@ class MockProvider:
         seqs = [int(n) for n, _, _ in lines] or [1]
         note: dict[str, Any] = {
             "title": "Conversation note", "note_language": "en", "conversation_type": "general",
+            "outcome": "Mock note (no LLM).",
             "summary": [f"{who}: {text}"[:120] for _, who, text in lines[:3]] or ["(no speech captured)"],
             "parties": [{"name": who, "role": "participant"} for who in sorted({w for _, w, _ in lines})],
-            "requirements": [{"text": text[:120], "original": text[:120], "evidence": [int(n)]}
-                             for n, _, text in lines[:3]] or [{"text": "No transcript", "evidence": seqs}],
-            "items": [], "stated_totals": [], "locations": [], "schedule": [], "decisions": [],
-            "action_items": [], "open_questions": [], "uncertain_spans": [],
+            "items": [], "stated_totals": [], "locations": [], "schedule": [],
+            "decisions": [{"text": text[:120], "evidence": [int(n)]} for n, _, text in lines[:2]]
+            or [{"text": "No transcript", "evidence": seqs}],
+            "action_items": [], "uncertain_spans": [],
             "conversation_languages": sorted(set(re.findall(r"\((\w\w-IN)\)", user))),
         }
         return note, {"input_tokens": len(user) // 4, "output_tokens": 200}

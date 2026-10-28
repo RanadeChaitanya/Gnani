@@ -8,7 +8,6 @@ Ev = Field(min_length=1, description="transcript line numbers (#N) that support 
 
 class Cited(BaseModel):
     text: str = Field(description="clear English (or requested language)")
-    original: str | None = Field(None, description="the speaker's own words, quoted from the transcript")
     evidence: list[int] = Ev
 
 
@@ -24,6 +23,7 @@ class Item(BaseModel):
     unit_price: float | None = Field(None, description="price per unit in INR, only if said")
     total_price: float | None = Field(None, description="price for this line in INR, only if said")
     shop: str | None = Field(None, description="seller/shop name if said, else null")
+    heard_as: str | None = Field(None, description="the transcript's literal words, ONLY if you corrected a misheard word")
     evidence: list[int] = Ev
 
 
@@ -54,7 +54,7 @@ class ActionItem(BaseModel):
 
 
 class Uncertain(BaseModel):
-    text: str
+    text: str = Field(description="a short question for the user to confirm, e.g. 'Sugar: 8 kg or 50 kg?'")
     reason: str
     evidence: list[int] = Ev
 
@@ -63,16 +63,15 @@ class NoteContent(BaseModel):
     title: str = Field(max_length=80)
     note_language: Literal["en", "hi", "same"]
     conversation_type: Literal["order", "appointment", "complaint", "general"]
-    summary: list[str] = Field(min_length=1, max_length=5)
+    outcome: str = Field(description="ONE sentence: what was agreed and what happens next")
+    summary: list[str] = Field(min_length=1, max_length=3, description="what the call was about, in your own words")
     parties: list[Party] = []
-    requirements: list[Cited] = Field([], description="what the customer/caller needs or asked for")
     items: list[Item] = []
     stated_totals: list[StatedTotal] = []
     locations: list[Location] = []
     schedule: list[ScheduleItem] = []
     decisions: list[Cited] = []
     action_items: list[ActionItem] = []
-    open_questions: list[str] = []
     uncertain_spans: list[Uncertain] = []
     conversation_languages: list[str] = []
 

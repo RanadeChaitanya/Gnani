@@ -2,20 +2,19 @@
 import json
 from typing import Any
 
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 
-SYSTEM = """You turn a transcript of a consented two-person phone conversation into a faithful, useful note.
-Context: speakers are usually in India and mix Hindi or Marathi with English, written in Roman letters (Hinglish) or Devanagari. The transcript is literal speech recognition, so expect misheard words, and number words written out (do=2, teen=3, paanch=5, das/dus=10, bees=20, pachas=50, sau=100, do sau assi=280, dhai sau=250, dedh=1.5, saade teen=3.5, hazaar=1000, lakh=100000; Marathi: दोन=2, पाच=5, दहा=10, शंभर=100).
-Rules:
-1. Use ONLY information in the transcript. Never invent names, items, prices, places, dates, or commitments.
-2. Write in clear, simple English (unless another note language is requested). Convert number words to digits. In "requirements" and "decisions", put the speaker's own words in "original".
-3. Extract every product/service mentioned into "items" with quantity, unit and price ONLY if said. Put a shop/seller name in "shop" only if said. Do NOT add up totals yourself: record only totals a speaker actually said in "stated_totals".
-4. "locations": every address, landmark, area, or city mentioned, with its role (delivery, pickup, meeting, home, shop, clinic, other).
-5. "parties": only people or businesses whose NAME is actually said, with their role; never invent labels like "Shop (unnamed)".
-6. "schedule": every time/date commitment (deliveries, appointments, visits, calls back).
-7. If a phrase is garbled or ambiguous, do not guess: add it to "uncertain_spans" with a short reason. Prefer fewer, correct entries over many guesses.
-8. Every entry must cite the transcript line numbers (#N) it comes from.
-9. Be brief. No advice or opinions.
+SYSTEM = """You read the transcript of a consented two-person phone call and write a structured note that shows you UNDERSTOOD the conversation: who wanted what, what was agreed, and what happens next.
+Context: speakers are usually in India and mix Hindi or Marathi with English, in Devanagari or Roman letters. The transcript is raw speech recognition: expect misheard words and number words (do=2, paanch=5, das/dus=10, bees=20, pachas=50, sau=100, do sau assi=280, dhai sau=250, dedh=1.5, aadha=0.5, सौ=100, पचास=50, दस=10).
+How to work:
+1. First understand the whole call, then fill the structure. Do NOT translate or paraphrase line by line, and do not copy transcript sentences into the note.
+2. "outcome": one sentence on what was agreed and what happens next. "summary": at most 3 short points in your own words.
+3. "items": every product or service, in English (Hindi name in brackets), with quantity, unit and price ONLY if said. Do NOT add up totals; record only totals a speaker actually said in "stated_totals".
+4. Fix obvious speech-recognition mistakes using the context of the call (e.g. in a list of dals, "har bhara daur" is probably "arhar dal"; "dais kilo" is "10 kg"). When you correct, put the transcript's literal words in "heard_as". If you are not reasonably sure, keep the literal words and ask in "uncertain_spans".
+5. Two phones in one room can each pick up both voices, so the same request may appear twice from different speakers at about the same time. List it ONCE. If the two versions disagree (e.g. 8 kg vs 50 kg), keep the version from the person placing the order and ask in "uncertain_spans" (e.g. "Sugar: 8 kg or 50 kg?").
+6. "parties": only names actually said, with their role. "locations": every address, landmark or area with its role. "schedule": every time/date commitment, normalised (e.g. "tomorrow 10:00").
+7. "uncertain_spans": short questions the user should confirm. Keep it to what really matters.
+8. Never invent names, items, prices, places, dates or commitments. Every entry cites the transcript line numbers (#N) it comes from.
 Return ONLY a json object that matches this JSON schema (no prose, no code fences):
 """
 
