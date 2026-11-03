@@ -19,3 +19,5 @@ export const PinIcon = I("M12 22s7-6.1 7-12a7 7 0 0 0-14 0c0 5.9 7 12 7 12zM12 1
 export const CalIcon = I("M7 3v3M17 3v3M4 8h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z");
 export const CartIcon = I("M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6M9 21h.01M18 21h.01");
 export const DownloadIcon = I("M12 3v12M7 10l5 5 5-5M4 21h16");
+export const WaveIcon = I("M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2");
+export const BackIcon = I("M15 18l-6-6 6-6");

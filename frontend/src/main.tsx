@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Link, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { NoteIcon, WaveIcon } from "./components/icons";
 import { setLang, useT } from "./lib/i18n";
 import Home from "./pages/Home";
 import Notes from "./pages/Notes";
@@ -20,9 +21,9 @@ function App() {
   return (
     <div className="app">
       <header className="top">
-        <Link to="/" className="brand">Saar · सार</Link>
-        <Link to="/notes" className="btn small">{t("notes")}</Link>
-        <button className="small" onClick={() => setLang(lang === "en" ? "hi" : "en")} aria-label="Switch language">
+        <Link to="/" className="brand"><span className="logo"><WaveIcon size={16} /></span>Saar</Link>
+        <Link to="/notes" className="btn icon-btn" aria-label={t("notes")}><NoteIcon size={20} /></Link>
+        <button className="icon-btn small" onClick={() => setLang(lang === "en" ? "hi" : "en")} aria-label="Switch language">
           {lang === "en" ? "हिं" : "EN"}
         </button>
       </header>

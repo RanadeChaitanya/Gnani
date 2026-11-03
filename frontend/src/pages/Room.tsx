@@ -8,6 +8,7 @@ import { api, ApiError, AppConfig, getConfig, loadSession, NotePayload, RoomStat
 import { useT } from "../lib/i18n";
 import { media, prepareMedia, releaseMedia } from "../lib/media";
 import { saveNote } from "../lib/notesDb";
+import Wave from "../components/Wave";
 
 type Provisional = { id: string; text: string; latency_ms: number };
 const wsUrl = (path: string) => `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}${path}`;
@@ -50,6 +51,7 @@ function Room({ code }: { code: string }) {
   const sttRef = useRef<WebSocket | null>(null);
   const stopCapRef = useRef<(() => void) | null>(null);
   const pausedRef = useRef(false);
+  const levels = useRef<number[]>([]);
   const wantRef = useRef(false);
   const endedNav = useRef(false);
   const autoStarted = useRef(false);
@@ -185,6 +187,7 @@ function Room({ code }: { code: string }) {
           },
           (rms) => {
             setLevel(rms);
+            levels.current = [...levels.current.slice(-40), rms];
             if (rms > SILENT_RMS) stats.current.lastLoud = Date.now();
             if (Date.now() - stats.current.lastLevelSent > 500 && ws.readyState === WebSocket.OPEN) {
               stats.current.lastLevelSent = Date.now();
@@ -434,7 +437,16 @@ function Room({ code }: { code: string }) {
   const others = Object.entries(speaking).filter(([id, ts]) => id !== me && ts && Date.now() - ts < 4000).map(([id]) => nameOf(id));
   return (
     <div className="callscreen">
-      {header}
+      <div className="call-hero">
+        <div className="callname">{state.solo ? t("solo") : other?.name ?? t("waitingFor")}</div>
+        <span className={`rec ${live ? "" : "off"}`}>{live ? t("transcribing") : t("paused")}</span>
+        <div className="timer">{clock}</div>
+        <div className="muted small-text">
+          {state.solo ? "" : other ? (other.online ? t("online") : t("away")) : code}
+          {quality && ` · ${quality}`}
+        </div>
+        <Wave levels={live ? levels.current : []} bars={31} />
+      </div>
       {banners}
       {upstream && upstream !== "connected" && <div className="banner">Transcription: {upstream}…</div>}
       {debug && (
@@ -446,7 +458,7 @@ function Room({ code }: { code: string }) {
           `audio used ${stats.current.used}/${stats.current.limit || cfg?.max_stt_seconds} s`,
         ].join("\n")}</pre>
       )}
-      <section className="captions" aria-live="polite" aria-label="Live captions">
+      <section className="captions captions-card" aria-live="polite" aria-label="Live captions">
         {visible.length === 0 && prov.length === 0 && <p className="muted center">Start talking — captions appear here on both phones.</p>}
         {visible.map((s) => (
           <div key={s.seq} id={`seg-${s.seq}`} className={`bubble ${s.participant_id === me ? "mine" : ""} ${s.possible_echo ? "echo" : ""}`}>
