@@ -8,6 +8,9 @@ _PATTERNS = [
     (re.compile(r"(token=)[^&\s\"']+"), r"\1[redacted]"),
     (re.compile(r"(x-api-key-id['\"]?\s*[:=]\s*['\"]?)[^'\"\s,}]+", re.I), r"\1[redacted]"),
     (re.compile(r"(Bearer\s+)\S+", re.I), r"\1[redacted]"),
+    # uvicorn.error prints "ip:port - "WebSocket …" [accepted]": never keep client IPs
+    (re.compile(r"^\S+:\d+ - \""), "[client] - \""),
+    (re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b"), "[ip]"),
 ]
 
 

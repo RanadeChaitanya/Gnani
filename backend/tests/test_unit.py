@@ -359,6 +359,9 @@ def test_redaction() -> None:
     assert "secret" not in redact("x-api-key-id: secret123")
     assert "[jwt]" in redact("token eyJhbGciOi.eyJzdWIiOi.abc-def")
     assert "abc" not in redact("GET /ws/stt?token=abc HTTP/1.1")
+    assert redact('2409:40c2:103e::405f:0 - "WebSocket /ws/room/X" [accepted]').startswith('[client] - "')
+    assert "27.107" not in redact('27.107.28.74:0 - "WebSocket /ws/stt/X" [accepted]')
+    assert redact("speech at 15:49:20") == "speech at 15:49:20"
     rec = logging.LogRecord("t", logging.INFO, "", 0, "connect", None, None)
     rec.data = {"headers": {"x-api-key-id": "k3y"}}
     assert "k3y" not in JsonFormatter().format(rec)

@@ -16,7 +16,11 @@ export const strings = {
     notes: "Notes",
     privacy: "Privacy",
     name: "Your name",
-    speak: "I'll speak in",
+    speak: "I'll speak in",
+
+
+
+
     moreOptions: "More options",
     notesIn: "Note language",
     notesEn: "English",
@@ -25,11 +29,16 @@ export const strings = {
     bias: "Names or words to recognise",
     biasHint: "Single words, letters only, separated by spaces",
     code: "Call code",
-    roomFull: "This call already has two people.",
+    roomFull: "This call already has two people.",
+
+
+
+
     readNotice: "Read the full notice",
     agreeStart: "Agree & start call",
     agreeJoin: "Agree & join",
-    agreeSolo: "Agree & start test",
+    agreeSolo: "Agree & start test",
+
     waitingFor: "Waiting for the other person",
     scanToJoin: "Ask them to scan this, or share the link",
     share: "Share link",
@@ -48,6 +57,8 @@ export const strings = {
     quickNote: "Note now",
     revoke: "Stop",
     end: "End",
+    micStalled: "Your mic stopped reaching Saar.",
+    fixMic: "Fix mic",
     micSilent: "We can't hear you. Check the mic isn't blocked or covered, and speak a little closer.",
     earphones: "Tip: earphones give much better captions.",
     keepOpen: "Keep Saar open — transcription pauses while it's in the background.",
@@ -69,10 +80,21 @@ export const strings = {
     note: "Note",
     transcript: "Transcript",
     unverified: "items could not be checked against what was said",
-    summary: "Summary",
-    saidInCall: "Total said on the call",
+    summary: "Summary",
+
+
+
+
+
+
+    saidInCall: "Total said on the call",
+
+
+
     decisions: "Agreed",
-    actions: "To do",
+    actions: "To do",
+
+
     home: "Home",
     deleteServer: "Delete this conversation from the server now",
     debug: "Details",
@@ -92,7 +114,11 @@ export const strings = {
     notes: "नोट्स",
     privacy: "गोपनीयता",
     name: "आपका नाम",
-    speak: "मैं बोलूँगा/बोलूँगी",
+    speak: "मैं बोलूँगा/बोलूँगी",
+
+
+
+
     moreOptions: "और विकल्प",
     notesIn: "नोट की भाषा",
     notesEn: "अंग्रेज़ी",
@@ -101,11 +127,16 @@ export const strings = {
     bias: "पहचानने के लिए नाम या शब्द",
     biasHint: "एक-एक शब्द, केवल अक्षर, स्पेस से अलग",
     code: "कॉल कोड",
-    roomFull: "इस कॉल में पहले से दो लोग हैं।",
+    roomFull: "इस कॉल में पहले से दो लोग हैं।",
+
+
+
+
     readNotice: "पूरी सूचना पढ़ें",
     agreeStart: "सहमत हूँ, कॉल शुरू करें",
     agreeJoin: "सहमत हूँ, जुड़ें",
-    agreeSolo: "सहमत हूँ, टेस्ट शुरू करें",
+    agreeSolo: "सहमत हूँ, टेस्ट शुरू करें",
+
     waitingFor: "दूसरे व्यक्ति का इंतज़ार",
     scanToJoin: "उनसे यह स्कैन करवाएँ, या लिंक भेजें",
     share: "लिंक भेजें",
@@ -124,6 +155,8 @@ export const strings = {
     quickNote: "अभी नोट",
     revoke: "रोकें",
     end: "खत्म",
+    micStalled: "आपका माइक Saar तक नहीं पहुँच रहा।",
+    fixMic: "माइक ठीक करें",
     micSilent: "आपकी आवाज़ नहीं आ रही। देखें कि माइक ब्लॉक या ढका न हो, और थोड़ा पास से बोलें।",
     earphones: "सुझाव: ईयरफ़ोन से कैप्शन काफ़ी बेहतर आते हैं।",
     keepOpen: "Saar खुला रखें — बैकग्राउंड में ट्रांसक्रिप्शन रुक जाता है।",
@@ -145,10 +178,21 @@ export const strings = {
     note: "नोट",
     transcript: "ट्रांसक्रिप्ट",
     unverified: "बातें बातचीत से मिलाई नहीं जा सकीं",
-    summary: "सारांश",
-    saidInCall: "कॉल में बताया गया कुल",
+    summary: "सारांश",
+
+
+
+
+
+
+    saidInCall: "कॉल में बताया गया कुल",
+
+
+
     decisions: "तय हुआ",
-    actions: "करना है",
+    actions: "करना है",
+
+
     home: "होम",
     deleteServer: "यह बातचीत अभी सर्वर से हटाएँ",
     debug: "विवरण",

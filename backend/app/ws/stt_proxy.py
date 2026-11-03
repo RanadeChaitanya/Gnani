@@ -19,6 +19,7 @@ from ..security import verify_token
 from .room_hub import RoomHub, get_hub
 
 log = logging.getLogger("saar.stt")
+DIAG_KEYS = ("ctx", "track", "muted", "heals", "frames", "dropped", "hidden", "ua")
 
 
 class SttSession:
@@ -29,6 +30,8 @@ class SttSession:
         self.local_index = 0
         self.segments = 0
         self.bad_frames = 0
+        self.pauses = 0
+        self.client: dict[str, str] = {}
         self.stopped = False
         self._last_usage_push = 0.0
         self.stream = GnaniStream(s.stt_url, build_headers(s, p.lang_code, json.loads(p.bias_words_json)),
@@ -125,11 +128,14 @@ class SttSession:
                 ctl = json.loads(text)
                 t = ctl.get("type")
                 if t == "pause":
+                    self.pauses += 1
                     await self.stream.pause()
                 elif t == "resume":
                     await self.stream.resume()
                 elif t == "level":
                     self.hub.levels[self.p.id] = float(ctl.get("rms", 0))
+                elif t == "diag":  # phone-side mic state, logged at the end (small, no content)
+                    self.client = {k: str(ctl.get(k))[:16] for k in DIAG_KEYS if k in ctl}
                 elif t == "stop":
                     break
         await self.stop("client")
@@ -143,7 +149,8 @@ class SttSession:
         seconds = self.stream.audio_seconds
         log.info("stt session ended", extra={"data": {"room": self.room.code, "role": self.p.role,
                                                       "lang": self.p.lang_code, "reason": reason, "segments": self.segments,
-                                                      "bad_frames": self.bad_frames, **self.stream.health()}})
+                                                      "bad_frames": self.bad_frames, "pauses": self.pauses,
+                                                      "client": self.client, **self.stream.health()}})
         await self.stream.close()
         self.hub.usage_base += seconds
         with session() as s:

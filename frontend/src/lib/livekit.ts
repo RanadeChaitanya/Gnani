@@ -29,3 +29,9 @@ export async function setCallMuted(room: Room, muted: boolean): Promise<void> {
   const pub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
   if (pub?.track) await (muted ? pub.track.mute() : pub.track.unmute());
 }
+
+/** After the phone killed our mic track, put the fresh one into the call too. */
+export async function replaceCallMic(room: Room, mic: MediaStreamTrack): Promise<void> {
+  const pub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
+  if (pub?.track) await pub.track.replaceTrack(mic, true);
+}

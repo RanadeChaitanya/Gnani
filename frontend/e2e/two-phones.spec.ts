@@ -72,3 +72,31 @@ test("third person sees the call is full before joining", async ({ browser }) =>
   await expect(c.getByText("This call already has two people.")).toBeVisible();
   await expect(c.getByRole("button", { name: /Agree & join/ })).toBeDisabled();
 });
+
+test("a frozen mic pipeline is detected and rebuilt by itself", async ({ browser }) => {
+  const page = await (await browser.newContext()).newPage();
+  await page.addInitScript(() => {
+    const w = window as unknown as { __ctxs: AudioContext[]; AudioContext: typeof AudioContext };
+    const Orig = w.AudioContext;
+    w.__ctxs = [];
+    w.AudioContext = class extends Orig {
+      constructor(o?: AudioContextOptions) {
+        super(o);
+        w.__ctxs.push(this);
+      }
+    };
+  });
+  await enter(page, "/setup?mode=solo", "Asha", "hi-IN", /Agree & start test/);
+  await expect(live(page)).toBeVisible({ timeout: 10_000 });
+  await page.waitForTimeout(1500);
+  // what phones did in the real test: the audio engine silently stops
+  await page.evaluate(() => (window as unknown as { __ctxs: AudioContext[] }).__ctxs.forEach((c) => void c.suspend()));
+  await expect
+    .poll(() => page.evaluate(() => {
+      const c = (window as unknown as { __ctxs: AudioContext[] }).__ctxs;
+      return c.length >= 2 && c[c.length - 1].state === "running";
+    }), { timeout: 15_000 })
+    .toBe(true);
+  await expect(live(page)).toBeVisible();
+  await expect(page.getByText("Your mic stopped reaching Saar.")).toHaveCount(0, { timeout: 5_000 });
+});

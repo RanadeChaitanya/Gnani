@@ -2,7 +2,7 @@ import QRCode from "qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import type { Room as LkRoom } from "livekit-client";
-import { startCapture } from "../audio/capture";
+import { getMic, startCapture } from "../audio/capture";
 import { EndIcon, MicIcon, MicOffIcon, NoteIcon, ShareIcon, StopIcon } from "../components/icons";
 import { api, ApiError, AppConfig, getConfig, loadSession, NotePayload, RoomState, Segment } from "../lib/api";
 import { useT } from "../lib/i18n";
@@ -45,7 +45,7 @@ function Room({ code }: { code: string }) {
   const [qr, setQr] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [, tick] = useState(0);
-  const stats = useRef({ gnani: [] as number[], dropped: 0, reconnects: 0, used: 0, limit: 0, frames: 0, lastLoud: 0, capSince: 0, lastLevelSent: 0 });
+  const stats = useRef({ gnani: [] as number[], dropped: 0, reconnects: 0, used: 0, limit: 0, frames: 0, lastLoud: 0, capSince: 0, lastLevelSent: 0, lastFrame: 0, heals: 0, lastHeal: 0, lastDiag: 0 });
   const callRef = useRef<LkRoom | null>(null);
   const sttRef = useRef<WebSocket | null>(null);
   const stopCapRef = useRef<(() => void) | null>(null);
@@ -173,10 +173,11 @@ function Room({ code }: { code: string }) {
       const m = JSON.parse(e.data);
       if (m.type === "ready") {
         setUpstream("connected");
-        stats.current.capSince = Date.now();
+        stats.current.capSince = stats.current.lastFrame = Date.now();
         if (pausedRef.current) ws.send('{"type":"pause"}');
         stopCapRef.current = await startCapture(media.ctx!, media.mic!,
           (frame) => {
+            stats.current.lastFrame = Date.now();
             if (ws.readyState !== WebSocket.OPEN || pausedRef.current) return;
             if (ws.bufferedAmount > 65536) return void stats.current.dropped++; // never block on a slow link
             ws.send(frame);
@@ -209,7 +210,7 @@ function Room({ code }: { code: string }) {
       stopCapRef.current?.();
       stopCapRef.current = null;
       if (sttRef.current === ws) sttRef.current = null;
-      if (wantRef.current && !final && attempt < 5) setTimeout(() => wantRef.current && startStt(attempt + 1), 1000 * 2 ** attempt);
+      if (wantRef.current && !final && attempt < 5) setTimeout(() => wantRef.current && !sttRef.current && startStt(attempt + 1), 1000 * 2 ** attempt);
     };
   }, [code, session.token, me]);
 
@@ -233,6 +234,42 @@ function Room({ code }: { code: string }) {
       });
     }
   }, [state, canStart, code, session.role, session.token]);
+
+  // Phones can silently stop our mic pipeline (the call switching the audio mode, iOS interruptions, the OS
+  // killing the track). Seen in real tests as one side sending 0 s of audio. Detect it and rebuild it.
+  const healMic = useCallback(async () => {
+    const s = stats.current;
+    s.heals++;
+    s.lastHeal = Date.now();
+    stopStt();
+    try {
+      if (!media.mic || media.mic.readyState === "ended") {
+        media.mic = await getMic((await getConfig()).mic);
+        if (callRef.current) await (await import("../lib/livekit")).replaceCallMic(callRef.current, media.mic);
+      }
+      void media.ctx?.close();
+      media.ctx = new AudioContext();
+      await media.ctx.resume().catch(() => {});
+    } catch {
+      return setMediaReady(false); // shows "Connect microphone"
+    }
+    void startStt();
+  }, [startStt, stopStt]);
+  const stalled = capture && !muted && !hidden && !!stopCapRef.current && Date.now() - stats.current.lastFrame > 2500;
+  useEffect(() => {
+    if (!capture) return;
+    const i = setInterval(() => {
+      const s = stats.current;
+      const now = Date.now();
+      if (stopCapRef.current && !pausedRef.current && now - s.lastFrame > 2500 && now - s.lastHeal > 6000) void healMic();
+      const ws = sttRef.current;
+      if (ws?.readyState === WebSocket.OPEN && now - s.lastDiag >= 5000 && (s.lastDiag = now))
+        ws.send(JSON.stringify({ type: "diag", ctx: media.ctx?.state, track: media.mic?.readyState, muted: media.mic?.muted,
+          heals: s.heals, frames: s.frames, dropped: s.dropped, hidden: document.visibilityState === "hidden",
+          ua: /iPhone|iPad/.test(navigator.userAgent) ? "ios" : /Android/.test(navigator.userAgent) ? "android" : "other" }));
+    }, 1000);
+    return () => clearInterval(i);
+  }, [capture, healMic]);
 
   // mute / background → pause (no silence is streamed, nothing is billed)
   useEffect(() => {
@@ -325,7 +362,12 @@ function Room({ code }: { code: string }) {
       {!mediaReady && <button className="primary big" onClick={connectAudio}>🎙️ Connect microphone</button>}
       {err && <div className="error" role="alert">{err}</div>}
       {audioBlocked && <button className="primary" onClick={() => callRef.current?.startAudio()}>🔊 {t("tapAudio")}</button>}
-      {silent && <div className="banner warn" role="alert">🎙️ {t("micSilent")}</div>}
+      {stalled ? (
+        <div className="banner warn row" role="alert">
+          <span className="grow">🎙️ {t("micStalled")}</span>
+          <button className="small primary" onClick={() => void healMic()}>{t("fixMic")}</button>
+        </div>
+      ) : silent && <div className="banner warn" role="alert">🎙️ {t("micSilent")}</div>}
       {hidden && <div className="banner">{t("keepOpen")}</div>}
       {info && <div className="banner" role="status">{info}</div>}
       {noteMsg && (
