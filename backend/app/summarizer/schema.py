@@ -63,10 +63,10 @@ class NoteContent(BaseModel):
     title: str = Field(max_length=80)
     note_language: Literal["en", "hi", "same"]
     conversation_type: Literal["order", "appointment", "complaint", "general"]
-    purpose: str = Field(description="ONE formal sentence: why the call took place")
-    outcome: str = Field(description="ONE formal sentence: what was agreed and what happens next")
-    summary: list[str] = Field(min_length=1, max_length=4,
-                               description="2-4 complete, formal sentences in your own words (minutes style)")
+    purpose: str = Field(max_length=120, description="why the call happened, at most 12 words")
+    outcome: str = Field(max_length=160, description="what was agreed / happens next, at most 15 words")
+    summary: list[str] = Field(min_length=1, max_length=5,
+                               description="key points: 2-5 short bullet fragments, each at most 12 words")
     parties: list[Party] = []
     items: list[Item] = []
     stated_totals: list[StatedTotal] = []

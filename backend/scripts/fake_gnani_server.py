@@ -79,8 +79,8 @@ class FakeGnani:
             return Response(status.value, status.phrase, Headers({"content-type": "text/plain"}), msg.encode())
         if not req.headers.get("x-api-key-id"):
             return reject(HTTPStatus.UNAUTHORIZED, "missing x-api-key-id")
-        if not req.headers.get("lang_code"):
-            return reject(HTTPStatus.BAD_REQUEST, "missing lang_code")
+        if not (req.headers.get("lang_code") or req.headers.get("language_code")):
+            return reject(HTTPStatus.BAD_REQUEST, "missing language_code")
         if self.max_connections is not None and self.active >= self.max_connections:
             return reject(HTTPStatus.TOO_MANY_REQUESTS, "concurrent connection limit")
         return None
@@ -88,6 +88,9 @@ class FakeGnani:
     async def _handler(self, ws: ServerConnection) -> None:
         assert ws.request is not None
         h = {k.lower(): v for k, v in ws.request.headers.raw_items()}
+        if "lang_code" not in h:  # Prisma v3.0 names: a hint list or indic-auto; the fake "detects" the first
+            first = h["language_code"].split(",")[0]
+            h["lang_code"] = "hi-IN" if first == "indic-auto" else first
         self.headers_seen.append(h)
         self.active += 1
         self.total_connections += 1
@@ -146,7 +149,7 @@ class FakeGnani:
                         await ws.send(json.dumps({"type": "processing", "timestamp": _ts()}))
                         await asyncio.sleep(self.latency_ms / 1000)
                         await ws.send(json.dumps({
-                            "type": "final_transcript" if partials else "transcript", "timestamp": _ts(), "text": self._text(h["lang_code"], index),
+                            "type": "final_transcript" if partials else "transcript", "timestamp": _ts(), "text": self._text(h["lang_code"], index), "detected_language_code": h["lang_code"],
                             "audio_duration_ms": dur, "segment_id": str(uuid.uuid4()), "segment_index": index,
                             "latency": self.latency_ms}))
                         self.transcripts_sent += 1

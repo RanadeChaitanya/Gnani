@@ -50,11 +50,7 @@ export default function Review({ n, me, token, names }: { n: SavedNote; me: stri
 
   return (
     <div className="stack">
-      {n.review?.final ? (
-        <div className="stepbar ok">✓ {t("finalSaved")}</div>
-      ) : (
-        <div className="stepbar">{t("step4of4")}</div>
-      )}
+      {!n.review?.final && <div className="stepbar">{t("step4of4")}</div>}
       <NoteDoc n={n} />
       {n.review?.final ? (
         <>

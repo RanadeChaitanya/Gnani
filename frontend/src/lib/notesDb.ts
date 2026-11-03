@@ -62,23 +62,21 @@ const who = (n: SavedNote) => {
   return n.participants.map((p) => (roles.get(p) ? `${p} (${roles.get(p)})` : p)).join(", ");
 };
 
-/** Formal call minutes in Markdown: numbered sections, only those with content. Used for .md, Notion and notes apps. */
+/** Compact call minutes in Markdown: key facts, then short lists; only sections with content. For .md, Notion, notes apps. */
 export function toMarkdown(n: SavedNote, withTranscript = true): string {
   const c = n.note;
   const L: string[] = [`# ${n.title}`, "",
-    `**Date:** ${date(n)}  `, `**Participants:** ${who(n)}  `,
-    `**Status:** ${isFinal(n) ? "Confirmed by all participants" : "Draft — not yet confirmed"}`, ""];
+    `${date(n)} · ${who(n)} · ${isFinal(n) ? "Confirmed by all participants" : "Draft — not yet confirmed"}`, ""];
   if (n.error) L.push(`> ${n.error}`, "");
   if (c) {
-    let k = 0;
-    const sec = (title: string, lines: string[]) => lines.length && L.push(`## ${++k}. ${title}`, ...lines, "");
-    sec("Purpose", [c.purpose || c.outcome]);
-    sec("Outcome", [c.outcome]);
-    sec("Summary", [c.summary.join(" ")]);
+    const sec = (title: string, lines: string[]) => lines.length && L.push(`## ${title}`, ...lines, "");
+    L.push(`**Purpose:** ${c.purpose || "—"}  `, `**Outcome:** ${c.outcome}`, "");
+    sec("To confirm", c.uncertain_spans.map((u) => `- ${u.text}`));
+    sec("Key points", c.summary.map((x) => `- ${x}`));
     if (c.items.length) {
       const rows: string[] = [];
       for (const [shop, items] of byShop(c.items)) {
-        rows.push(...(shop ? [`**${shop}**`, ""] : []), "| Item | Quantity | Amount |", "|---|---|---|");
+        rows.push(...(shop ? [`**${shop}**`, ""] : []), "| Item | Qty | Amount |", "|---|---|---|");
         for (const i of items) {
           const p = linePrice(i);
           rows.push(`| ${i.name}${i.heard_as ? ` (heard “${i.heard_as}”)` : ""} | ${qty(i)} | ${p != null ? rupees(p) : "—"} |`);
@@ -88,17 +86,15 @@ export function toMarkdown(n: SavedNote, withTranscript = true): string {
       const tl = totalLine(n);
       if (tl) rows.push(`**${tl}**`);
       for (const s of c.stated_totals) rows.push(`Total stated on the call${s.shop ? ` (${s.shop})` : ""}: **${rupees(s.amount)}**`);
-      sec("Order details", rows);
+      sec("Order", rows);
     }
-    sec("Decisions", c.decisions.map((d) => `- ${d.text}`));
-    sec("Action items", c.action_items.length
-      ? ["| Task | Owner | Due |", "|---|---|---|", ...c.action_items.map((a) => `| ${a.task} | ${a.owner ?? "—"} | ${a.due ?? "—"} |`)] : []);
-    sec("Schedule and locations", [...c.schedule.map((s) => `- ${s.when} — ${s.what}${s.where ? `, ${s.where}` : ""}`),
+    sec("Agreed", c.decisions.map((d) => `- ${d.text}`));
+    sec("To do", c.action_items.map((a) => `- [ ] ${a.task}${a.owner || a.due ? ` — ${[a.owner, a.due].filter(Boolean).join(", ")}` : ""}`));
+    sec("When and where", [...c.schedule.map((s) => `- ${s.when} · ${s.what}${s.where ? ` · ${s.where}` : ""}`),
       ...c.locations.map((l) => `- ${l.name} (${l.kind})`)]);
-    sec("Points to confirm", c.uncertain_spans.map((u) => `- ${u.text}`));
-    if (n.review?.corrections.length) sec("Corrections by participants", n.review.corrections.map((x) => `- ${x.name}: ${x.text}`));
+    if (n.review?.corrections.length) sec("Corrections", n.review.corrections.map((x) => `- ${x.name}: ${x.text}`));
   }
-  if (withTranscript && n.transcript.length) L.push("## Appendix: transcript", ...n.transcript.map((t) => `#${t.seq} **${t.name}:** ${t.text}`), "");
+  if (withTranscript && n.transcript.length) L.push("## Transcript", ...n.transcript.map((t) => `- **${t.name}:** ${t.text}`), "");
   return L.join("\n");
 }
 
@@ -107,7 +103,7 @@ export function toText(n: SavedNote): string {
   return toMarkdown(n, false)
     .split("\n")
     .filter((l) => !/^\|[\s:|-]+\|$/.test(l))
-    .map((l) => l.replace(/^# (.*)/, (_, x: string) => x.toUpperCase()).replace(/^## /, "\n").replace(/\*\*/g, "").replace(/ {2}$/, "")
+    .map((l) => l.replace(/^# (.*)/, (_, x: string) => x.toUpperCase()).replace(/^## /, "\n").replace(/\*\*/g, "").replace(/ {2}$/, "").replace(/^- \[ \] /, "☐ ").replace(/^- /, "• ")
       .replace(/^\| (.*) \|$/, (_, x: string) => `• ${x.split(" | ").join(" — ")}`))
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")

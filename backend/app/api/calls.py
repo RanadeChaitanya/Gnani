@@ -52,7 +52,7 @@ class MeRequest(BaseModel):
 class CallRequest(BaseModel):
     to: str = Field(max_length=20)
     display_name: str = Field(min_length=1, max_length=40)
-    lang_code: LangCode = "hi-IN"
+    lang_code: LangCode = "auto"
     notes_lang: Literal["en", "same", "hi"] = "en"
 
 

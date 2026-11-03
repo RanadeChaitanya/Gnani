@@ -49,6 +49,10 @@ def configs() -> dict[str, dict[str, str]]:
         "hi_bias": {"language_code": "hi-IN", "format": "verbatim", "bias_list": json.dumps(GROCERY_HI, ensure_ascii=True),
                     "bias_score": "1.5"},
         "hi_plain": {"language_code": "hi-IN", "format": "verbatim"},
+        "v3_auto": {"model": "prisma-v3.0", "language_code": "indic-auto", "format": "transcribe"},
+        "v3_hi_en": {"model": "prisma-v3.0", "language_code": "hi-IN,en-IN", "format": "transcribe"},
+        "v3_hi_en_ctx": {"model": "prisma-v3.0", "language_code": "hi-IN,en-IN", "format": "transcribe",
+                         "topic": "A customer phones a kirana shop to order groceries: items, quantities, prices, delivery."},
         "hi_broad": {"language_code": "hi-IN", "format": "verbatim", "bias_list": json.dumps(BROAD_HI, ensure_ascii=True),
                      "bias_score": "1.0"},
     }

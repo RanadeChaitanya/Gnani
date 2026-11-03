@@ -60,27 +60,28 @@ describe("notesDb", () => {
     expect(await getNote("n1")).toBeUndefined();
   });
 
-  it("exports formal minutes: numbered sections, order table, totals, status", async () => {
+  it("exports compact minutes: key facts, short lists, order table, totals, status", async () => {
     const n = await saveNote(payload("n3", "2026-10-28T12:00:00"));
     const md = toMarkdown(n);
     expect(md).toContain("# Atta order");
-    expect(md).toContain("**Participants:** Asha, Ravi (shopkeeper)");
-    expect(md).toContain("**Status:** Confirmed by all participants");
-    expect(md).toContain("## 1. Purpose\nAsha placed a grocery order with Ravi Kirana.");
-    expect(md).toContain("## 2. Outcome\nRavi Kirana delivers 2 kg atta");
-    expect(md).toContain("## 4. Order details");
+    expect(md).toContain("Asha, Ravi (shopkeeper) · Confirmed by all participants");
+    expect(md).toContain("**Purpose:** Asha placed a grocery order with Ravi Kirana.");
+    expect(md).toContain("**Outcome:** Ravi Kirana delivers 2 kg atta");
+    expect(md).toContain("## To confirm\n- Sugar: 8 kg or 50 kg?");
+    expect(md).toContain("## Key points\n- 2 kg atta and 1 litre oil from Ravi Kirana");
     expect(md).toContain("| arhar dal (heard “har bhara daur”) | 10 kg | — |");
     expect(md).toContain("| atta | 2 kg | ₹100 |");
     expect(md).toContain("Priced items: ₹240 (+1 without price)");
-    expect(md).toContain("| Deliver atta | Ravi | tomorrow |");
+    expect(md).toContain("- [ ] Deliver atta — Ravi, tomorrow");
     expect(md).toContain("- Gandhi Nagar (delivery)");
-    expect(md).toContain("Points to confirm\n- Sugar: 8 kg or 50 kg?");
     expect(md).toContain("- Ravi: Oil is 1 litre");
+    expect(md).not.toMatch(/## \d/);
     expect(toMarkdown(n)).toBe(md);
     const txt = toText(n);
     expect(txt.startsWith("ATTA ORDER")).toBe(true);
     expect(txt).not.toContain("**");
     expect(txt).toContain("• atta — 2 kg — ₹100");
+    expect(txt).toContain("☐ Deliver atta — Ravi, tomorrow");
   });
 
   it("exports WhatsApp text and CSV", async () => {

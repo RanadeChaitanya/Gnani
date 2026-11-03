@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     stt_min_segment_ms: int = 120
     stt_max_speech_s: float | None = None
     stt_format_default: str = "transcribe"
+    stt_model: str = "prisma-v3.0"  # "" → Prisma v2.5 (old header set)
     stt_partials: bool = True  # verified live 2026-10-28: partial_transcript + final_transcript
     max_stt_seconds_per_room: float = 1800
     gnani_ws_url_override: str = ""

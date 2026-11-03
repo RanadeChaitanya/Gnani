@@ -10,7 +10,10 @@ async function setUp(browser: Browser, name: string, number: string, lang: strin
   await page.goto("/");
   await page.getByLabel("Name").fill(name);
   await page.getByLabel("Your mobile number").fill(number);
-  await page.getByLabel(/speak in/).selectOption(lang);
+  if (lang !== "auto") {
+    await page.getByText("Language: detected automatically").click();
+    await page.getByRole("combobox").selectOption(lang);
+  }
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("button", { name: /Call someone/ })).toBeVisible();
   return page;
@@ -68,8 +71,9 @@ test("call by number: it rings, accept, captions on both, stop/resume, both conf
   await expect(host.getByText("Waiting for Ravi to confirm…")).toBeVisible();
   await guest.getByRole("button", { name: /Yes, the note is correct/ }).click();
   for (const p of [host, guest]) {
-    await expect(p.getByText("Final note — confirmed by both of you")).toBeVisible();
-    await expect(p.getByRole("button", { name: /Save to phone notes/ })).toBeVisible();
+    await expect(p.getByText("Confirmed by all participants")).toBeVisible();
+    await expect(p.getByRole("button", { name: /Phone notes/ })).toBeVisible();
+    await expect(p.getByRole("button", { name: /WhatsApp/ })).toBeVisible();
   }
   await shot(host, "5-final-note");
 
@@ -85,7 +89,7 @@ test("call by number: it rings, accept, captions on both, stop/resume, both conf
 });
 
 test("not on Saar: invite link, one tap to accept; a third person can't join", async ({ browser }) => {
-  const host = await setUp(browser, "Meena", "99887 76655", "hi-IN");
+  const host = await setUp(browser, "Meena", "99887 76655", "auto");
   await dial(host, "8000000001");
   await expect(host.getByText("Not on Saar right now")).toBeVisible();
   await expect(host.getByRole("link", { name: "Send invite on WhatsApp" })).toHaveAttribute("href", /wa\.me\/918000000001\?text=/);

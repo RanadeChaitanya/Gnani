@@ -41,18 +41,36 @@ def validate_bias_words(words: list[str]) -> list[str]:
     return words
 
 
+def language_hint(lang_code: str) -> str:
+    """Prisma v3.0: 'auto' → the model identifies the language. A chosen language is a hint, not a lock.
+    Docs allow a list ("hi-IN,en-IN") but the live stream rejects it (1008, 2026-11-04), so send one."""
+    return "indic-auto" if lang_code == "auto" else lang_code
+
+
 def build_headers(s: Settings, lang_code: str, bias_words: list[str], *, bias_score: float = 1.0,
-                  sample_rate: int = 16000) -> dict[str, str]:
+                  sample_rate: int = 16000, speaker_names: list[str] | None = None) -> dict[str, str]:
     """Upgrade headers for one participant's upstream connection (§7.1)."""
     if bias_score not in BIAS_SCORES:
         raise ValueError(f"bias_score must be one of {sorted(BIAS_SCORES)}")
     words = validate_bias_words(bias_words)
-    h = {
-        "x-api-key-id": s.gnani_api_key,
-        "lang_code": lang_code,
+    if s.stt_model:
+        # Prisma v3.0 (eval/grocery_ab.py: same accuracy as v2.5, digits for numbers, identifies the language).
+        # No `topic`: it lowered accuracy in that test.
+        h = {"x-api-key-id": s.gnani_api_key, "model": s.stt_model, "language_code": language_hint(lang_code),
+             "format": "transcribe"}
+        if words:
+            h["keyterms"] = json.dumps(words, ensure_ascii=True)
+        if speaker_names:
+            h["speaker_names"] = json.dumps(speaker_names[:4], ensure_ascii=True)
+    else:
+        h = {"x-api-key-id": s.gnani_api_key, "lang_code": "hi-IN" if lang_code == "auto" else lang_code,
+             "x-format": "verbatim" if words or lang_code in VERBATIM_LANGS else s.stt_format_default,
+             "itn_native_numerals": "false"}
+        if words:
+            h["x-bias-list"] = json.dumps(words, ensure_ascii=True)  # \uXXXX keeps headers ASCII
+            h["x-bias-score"] = str(bias_score)
+    h |= {
         "x-sample-rate": str(sample_rate),
-        "x-format": "verbatim" if words or lang_code in VERBATIM_LANGS else s.stt_format_default,
-        "itn_native_numerals": "false",
         "x-vad-threshold": str(s.stt_vad_threshold),
         "x-min-silence-ms": str(s.stt_min_silence_ms),
         "x-min-speech-ms": str(s.stt_min_speech_ms),
@@ -60,9 +78,6 @@ def build_headers(s: Settings, lang_code: str, bias_words: list[str], *, bias_sc
     }
     if s.stt_max_speech_s:
         h["x-max-speech-s"] = str(s.stt_max_speech_s)
-    if words:
-        h["x-bias-list"] = json.dumps(words, ensure_ascii=True)  # \uXXXX keeps headers ASCII
-        h["x-bias-score"] = str(bias_score)
     if s.stt_partials:
         h["x-partials"] = "true"
     return h

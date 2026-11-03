@@ -101,3 +101,11 @@ User feedback after v4: "no codes", "UI doesn't guide the user", "notes are poor
 1. Real two-phone test of v5 (link from the latest tunnel).
 2. Notion: create an internal integration, share a page with it, put `NOTION_TOKEN` + `NOTION_PARENT_PAGE_ID` in `.env`.
 3. Checkpoints C/D unchanged (eval budget, deploy, handles).
+
+## v6 (2026-11-04) — Prisma v3.0 auto language, compact notes, share tiles
+- Gnani now documents **Prisma v3.0** (`model: prisma-v3.0`, `language_code: indic-auto`, `speaker_names`, `keyterms`, `detected_language_code`). Measured: grocery A/B v3 94 % vs v2.5 97 % (v3 writes digits, fixes "dhai sau"; once lost "Shastri Nagar"); `topic` hint lowered it to 88 % → not used. Language ID on 12 test turns: 11/12.
+- **Doc discrepancy**: docs allow a language list (`hi-IN,en-IN`) on streaming; the live stream rejects it (1008 "exactly one locale is required"). We send `indic-auto` (default "Auto-detect") or the one chosen language.
+- `STT_MODEL=prisma-v3.0` default; `""` falls back to v2.5 headers. Segments carry `detected_language_code`.
+- Notes prompt v5: compact fragments (≤12 words), key points list, no paragraphs; UI/Markdown: Purpose/Outcome facts box, To confirm, Key points, Order table, Agreed, To do checklist, When and where.
+- Share tiles: Phone notes (share sheet), Notion (server API when `NOTION_TOKEN`+`NOTION_PARENT_PAGE_ID` set; otherwise copies Markdown and opens notion.so/new to paste), WhatsApp, PDF.
+- Tests: backend 40, frontend 12, e2e 3.

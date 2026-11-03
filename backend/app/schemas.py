@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 from .gnani.stt_client import validate_bias_words
 
 LANGUAGES = [
+    {"code": "auto", "label": "Auto-detect (any Indian language, mixed with English)", "native": "Auto"},
     {"code": "hi-IN", "label": "Hindi / Hinglish — हिन्दी (most accurate)", "native": "हिन्दी"},
     {"code": "en-IN", "label": "English / Hinglish in Roman letters", "native": "English"},
     {"code": "mr-IN", "label": "Marathi (मराठी)", "native": "मराठी"},
@@ -17,12 +18,12 @@ LANGUAGES = [
     {"code": "ta-IN", "label": "Tamil", "native": "தமிழ்"},
     {"code": "te-IN", "label": "Telugu", "native": "తెలుగు"},
 ]
-LangCode = Literal["en-IN", "hi-IN", "mr-IN", "bn-IN", "gu-IN", "kn-IN", "ml-IN", "pa-IN", "ta-IN", "te-IN"]
+LangCode = Literal["auto", "en-IN", "hi-IN", "mr-IN", "bn-IN", "gu-IN", "kn-IN", "ml-IN", "pa-IN", "ta-IN", "te-IN"]
 
 
 class JoinRequest(BaseModel):
     display_name: str = Field(min_length=1, max_length=40)
-    lang_code: LangCode = "hi-IN"
+    lang_code: LangCode = "auto"
     notes_lang: Literal["en", "same", "hi"] = "en"
     bias_words: list[str] = Field(default_factory=list)
 

@@ -26,7 +26,7 @@ export default function Join() {
   const profile = getProfile();
   const [preview, setPreview] = useState<Preview | null>(null);
   const [name, setName] = useState(profile?.name ?? "");
-  const [lang, setLang] = useState(profile?.lang ?? "hi-IN");
+  const [lang, setLang] = useState(profile?.lang ?? "auto");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -57,11 +57,14 @@ export default function Join() {
       {!profile && (
         <div className="stack card">
           <label>{t("name")}<input value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} autoComplete="name" /></label>
-          <label>{t("speak")}
-            <select value={lang} onChange={(e) => setLang(e.target.value)}>
-              {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-            </select>
-          </label>
+          <details className="more">
+            <summary>{t("autoLang")}</summary>
+            <label>{t("language")}
+              <select value={lang} onChange={(e) => setLang(e.target.value)}>
+                {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+              </select>
+            </label>
+          </details>
         </div>
       )}
       <p className="muted small-text center">🔒 {t("consentShort")}</p>

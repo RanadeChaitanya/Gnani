@@ -21,3 +21,6 @@ export const CartIcon = I("M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L2
 export const DownloadIcon = I("M12 3v12M7 10l5 5 5-5M4 21h16");
 export const WaveIcon = I("M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2");
 export const BackIcon = I("M15 18l-6-6 6-6");
+export const ChatIcon = I("M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.4A8.5 8.5 0 1 1 21 11.5z");
+export const NotionIcon = I("M5 4h11l3 3v13H5zM9 16V9l6 7V9");
+export const PhoneNoteIcon = I("M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM9 7h6M9 11h6M9 15h4");

@@ -223,3 +223,18 @@ textarea { font: inherit; resize: vertical; }
 h2.sec { font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 6px; }
 table.items th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 2px; border-bottom: 1px solid var(--line); }
 @media print { .minutes { border: none; padding: 0; } .stepbar, .sticky-bottom { display: none !important; } }
+
+/* v6: compact minutes + share tiles */
+.facts-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; padding: 12px 14px; background: var(--bg); border-radius: 14px; }
+.facts-grid dt { color: var(--muted); font-size: 13px; padding-top: 2px; }
+.facts-grid dd { margin: 0; }
+ul.tight { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
+ul.todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+ul.todo li { display: flex; gap: 10px; align-items: flex-start; }
+ul.todo li > span:first-child { flex: none; width: 20px; text-align: center; }
+.minutes { gap: 14px; }
+.minutes-head { border-bottom: 1px solid var(--line); gap: 4px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { flex-direction: column; align-items: flex-start; gap: 2px; min-height: 104px; border-radius: 18px; padding: 14px; text-align: left; background: var(--solid); }
+.tile .tile-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 6px; }
+.tile .muted { font-size: 12px; font-weight: 400; }

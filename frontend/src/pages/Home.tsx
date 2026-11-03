@@ -37,7 +37,7 @@ function Setup({ onDone }: { onDone: (p: Profile) => void }) {
   const langs = useLanguages();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [lang, setLang] = useState("hi-IN");
+  const [lang, setLang] = useState("auto");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent) {
@@ -62,11 +62,14 @@ function Setup({ onDone }: { onDone: (p: Profile) => void }) {
         <label>{t("yourMobile")}
           <input value={phone} onChange={(e) => setPhone(e.target.value)} required inputMode="tel" autoComplete="tel" placeholder="98765 43210" />
         </label>
-        <label>{t("speak")}
-          <select value={lang} onChange={(e) => setLang(e.target.value)}>
-            {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-          </select>
-        </label>
+        <details className="more">
+          <summary>{t("autoLang")}</summary>
+          <label>{t("language")}
+            <select value={lang} onChange={(e) => setLang(e.target.value)}>
+              {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+            </select>
+          </label>
+        </details>
         {err && <div className="error" role="alert">{err}</div>}
         <button className="primary big" disabled={busy}>{busy ? "…" : t("continue")}</button>
         <p className="muted small-text">{t("numberPrivacy")}</p>

@@ -23,15 +23,28 @@ from app.ws.room_hub import RoomHub
 # ---------------- headers ----------------
 
 
-def test_headers_default_transcribe() -> None:
-    h = build_headers(get_settings(), "mr-IN", [])
-    assert h["x-api-key-id"] == "test-key" and h["lang_code"] == "mr-IN" and h["x-sample-rate"] == "16000"
-    assert h["x-format"] == "transcribe" and h["x-min-silence-ms"] == "700" and h["x-vad-threshold"] == "0.5"
+V25 = get_settings().model_copy(update={"stt_model": ""})
+
+
+def test_headers_prisma_v3_auto_language_and_names() -> None:
+    h = build_headers(get_settings(), "auto", [], speaker_names=["Asha", "रवि"])
+    assert h["x-api-key-id"] == "test-key" and h["model"] == "prisma-v3.0" and h["language_code"] == "indic-auto"
+    assert h["format"] == "transcribe" and h["x-sample-rate"] == "16000" and h["x-min-silence-ms"] == "700"
+    assert h["speaker_names"].isascii() and json.loads(h["speaker_names"]) == ["Asha", "रवि"]
+    assert "lang_code" not in h and "keyterms" not in h
+    assert build_headers(get_settings(), "mr-IN", [])["language_code"] == "mr-IN"
+    assert json.loads(build_headers(get_settings(), "hi-IN", ["नमस्ते"])["keyterms"]) == ["नमस्ते"]
+
+
+def test_headers_v25_default_transcribe() -> None:
+    h = build_headers(V25, "mr-IN", [])
+    assert h["lang_code"] == "mr-IN" and h["x-format"] == "transcribe" and "model" not in h
     assert "x-bias-list" not in h and "x-max-speech-s" not in h
+    assert build_headers(V25, "auto", [])["lang_code"] == "hi-IN"
 
 
-def test_headers_bias_escaped_and_verbatim() -> None:
-    h = build_headers(get_settings(), "hi-IN", ["नमस्ते", "Vachana"])
+def test_headers_v25_bias_escaped_and_verbatim() -> None:
+    h = build_headers(V25, "hi-IN", ["नमस्ते", "Vachana"])
     assert h["x-format"] == "verbatim" and h["x-bias-score"] == "1.0"
     assert h["x-bias-list"].isascii() and json.loads(h["x-bias-list"]) == ["नमस्ते", "Vachana"]
 
@@ -236,7 +249,7 @@ def test_number_words_hinglish_marathi_devanagari() -> None:
 
 def test_spoken_form_for_hindi_and_english_itn_elsewhere() -> None:
     """Measured: Gnani ITN broke "dhai sau" on hi-IN; Saar parses numbers itself for hi/en."""
-    st = get_settings()
+    st = V25
     assert build_headers(st, "hi-IN", [])["x-format"] == "verbatim"
     assert build_headers(st, "en-IN", [])["x-format"] == "verbatim"
     assert build_headers(st, "mr-IN", [])["x-format"] == "transcribe"
