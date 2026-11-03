@@ -22,4 +22,5 @@ async def config() -> dict[str, Any]:
             "call_audio_provider": s.call_audio_provider if s.livekit_url else "none",
             "stt_partials": s.stt_partials, "retention_hours": s.server_retention_hours,
             "mic": {"aec": s.mic_aec, "ns": s.mic_ns, "agc": s.mic_agc},
-            "notice": notice_dict(), "version": VERSION}
+            "notice": notice_dict(), "version": VERSION,
+            "notion": bool(s.notion_token and s.notion_parent_page_id)}

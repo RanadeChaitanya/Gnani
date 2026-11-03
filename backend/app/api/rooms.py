@@ -1,9 +1,10 @@
 """Rooms, consent state machine, notes and server-side delete (§8.1, §9.1). Server enforces every transition."""
 import json
 from datetime import timedelta
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Header, Request
+from pydantic import BaseModel, Field
 from sqlmodel import col, delete, func, select
 
 from ..call_audio import create_credentials
@@ -93,6 +94,8 @@ async def join_room(code: str, req: JoinRequest) -> dict[str, Any]:
         raise ApiError(409, "room_full", "This conversation already has two people")
     out = _add_participant(room, req, "guest")
     await get_hub(room.code).broadcast({"type": "room_state", **room_state(room)})
+    from .calls import call_answered  # calls imports this module
+    await call_answered(room.code)
     return out
 
 
@@ -202,6 +205,49 @@ async def quick_note(ra: tuple[Room, Claims] = Depends(auth)) -> dict[str, str]:
     if _segment_count(room.id) < 3:
         raise ApiError(422, "too_little_content", "Talk a little more before making a note")
     return {"note_id": notes.start_note(room, "quick").id, "status": "pending"}
+
+
+MAX_CORRECTIONS = 3
+
+
+class ReviewRequest(BaseModel):
+    action: Literal["confirm", "correct"]
+    text: str = Field("", max_length=500)
+
+
+@router.post("/rooms/{code}/notes/{note_id}/review")
+async def review(note_id: str, req: ReviewRequest, ra: tuple[Room, Claims] = Depends(auth)) -> dict[str, Any]:
+    """Both people confirm the draft before it is final; a correction regenerates it and asks both again."""
+    room, claims = ra
+    async with get_hub(room.code).lock:
+        with session() as s:
+            note = s.get(Note, note_id)
+            if not note or note.room_id != room.id:
+                raise ApiError(404, "note_not_found", "Note not found")
+            if note.status != "ready":
+                raise ApiError(409, "note_not_ready", "The note is still being written")
+            if req.action == "confirm":
+                reviews = json.loads(note.reviews_json or "{}")
+                reviews[claims.participant_id] = "confirmed"
+                note.reviews_json = json.dumps(reviews)
+            else:
+                fixes = json.loads(note.corrections_json or "[]")
+                if not req.text.strip():
+                    raise ApiError(422, "empty_correction", "Say what should change")
+                if len(fixes) >= MAX_CORRECTIONS:
+                    raise ApiError(409, "too_many_corrections", "This note has been corrected 3 times; edit the exported copy")
+                p = s.get(Participant, claims.participant_id)
+                fixes.append({"name": p.display_name if p else "?", "text": req.text.strip()})
+                note.corrections_json = json.dumps(fixes, ensure_ascii=False)
+                note.reviews_json, note.status = "{}", "pending"
+            s.add(note)
+            s.commit()
+            s.refresh(note)
+    if req.action == "correct":
+        notes.revise_note(note, room)
+    payload = notes.note_payload(note, room)
+    await get_hub(room.code).broadcast({"type": "note_ready", "note": payload})
+    return payload
 
 
 @router.get("/rooms/{code}/notes")

@@ -11,6 +11,7 @@ export type AppConfig = {
   mic: { aec: boolean; ns: boolean; agc: boolean };
   notice: Notice;
   version: string;
+  notion: boolean;
 };
 export type Participant = { id: string; name: string; role: string; lang_code: string; consent: string; online: boolean };
 export type Scenario = "shop" | "appointment" | "complaint" | "general";
@@ -30,6 +31,7 @@ export type Session = {
   solo: boolean;
   call: { url: string; token: string } | null;
   notice: Notice;
+  ringing?: boolean;
 };
 export type Segment = {
   seq: number;
@@ -58,6 +60,7 @@ export type NoteContent = {
   title: string;
   note_language: string;
   conversation_type: "order" | "appointment" | "complaint" | "general";
+  purpose: string;
   outcome: string;
   summary: string[];
   parties: { name: string; role: string }[];
@@ -90,6 +93,7 @@ export type NotePayload = {
   note: NoteContent | null;
   costs: Costs | null;
   faithfulness: { flag_count: number; flags: Flag[]; checked_count: number } | null;
+  review: { by: Record<string, "confirmed" | "pending">; final: boolean; corrections: { name: string; text: string }[] };
   transcript: { seq: number; participant_id: string; name: string; text: string; started_at: number }[];
 };
 

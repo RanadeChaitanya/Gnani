@@ -48,7 +48,11 @@ def note_payload(note: Note, room: Room) -> dict[str, Any]:
     with session() as s:
         parts = s.exec(select(Participant).where(Participant.room_id == room.id)
                        .order_by(col(Participant.joined_at))).all()
+    reviews = json.loads(note.reviews_json or "{}")
     return {
+        "review": {"by": {p.id: reviews.get(p.id, "pending") for p in parts},
+                   "final": note.status == "ready" and bool(parts) and all(reviews.get(p.id) == "confirmed" for p in parts),
+                   "corrections": json.loads(note.corrections_json or "[]")},
         "id": note.id, "room_code": room.code, "kind": note.kind, "status": note.status,
         "created_at": note.created_at.isoformat(), "model": note.model, "error": note.error,
         "participants": [p.display_name for p in parts], "langs": sorted({p.lang_code for p in parts}),
@@ -57,6 +61,13 @@ def note_payload(note: Note, room: Room) -> dict[str, Any]:
         "faithfulness": json.loads(note.faithfulness_json) if note.faithfulness_json else None,
         "transcript": room_segments(room.id),
     }
+
+
+def revise_note(note: Note, room: Room) -> None:
+    """Regenerate after a participant's correction (the row keeps its id, so both phones update in place)."""
+    t = asyncio.ensure_future(_generate(note.id, room))
+    _tasks.add(t)
+    t.add_done_callback(_tasks.discard)
 
 
 def start_note(room: Room, kind: str, warning: str = "") -> Note:
@@ -81,10 +92,13 @@ async def _generate(note_id: str, room: Room) -> None:
         parts = s.exec(select(Participant).where(Participant.room_id == room.id)
                        .order_by(col(Participant.joined_at))).all()
     host = next((p for p in parts if p.role == "host"), parts[0])
+    with session() as s:
+        row = s.get(Note, note_id)
+        corrections = json.loads(row.corrections_json) if row else []
     p = provider()
     system = prompts.system_prompt(json_schema())
     user = prompts.user_prompt(host.notes_lang, [{"name": x.display_name, "lang_code": x.lang_code} for x in parts],
-                               prompts.transcript_lines(segs, st.max_transcript_chars), room.scenario)
+                               prompts.transcript_lines(segs, st.max_transcript_chars), room.scenario, corrections)
     content: NoteContent | None = None
     err = ""
     tokens = {"input_tokens": 0, "output_tokens": 0}

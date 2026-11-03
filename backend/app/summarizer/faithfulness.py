@@ -36,7 +36,7 @@ def numbers(text: str) -> set[str]:
 
 def _texts(n: dict[str, Any]) -> list[tuple[str, str]]:
     """(field, text) pairs scanned for numbers. Uncertain spans are excluded: they are flagged by design."""
-    out = [("title", n.get("title", "")), ("outcome", n.get("outcome", ""))]
+    out = [("title", n.get("title", "")), ("purpose", n.get("purpose", "")), ("outcome", n.get("outcome", ""))]
     out += [(f"summary[{i}]", s) for i, s in enumerate(n.get("summary", []))]
     for f in ("decisions",):
         out += [(f"{f}[{i}]", x["text"]) for i, x in enumerate(n.get(f, []))]

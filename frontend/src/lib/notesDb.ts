@@ -56,35 +56,62 @@ export function totalLine(n: SavedNote): string | null {
   return c.unpriced_items ? `Priced items: ${rupees(c.grand_total)} (+${c.unpriced_items} without price)` : `Total: ${rupees(c.grand_total)}`;
 }
 
-/** Deterministic Markdown export. */
+export const isFinal = (n: NotePayload) => !!n.review?.final;
+const who = (n: SavedNote) => {
+  const roles = new Map((n.note?.parties ?? []).map((p) => [p.name, p.role]));
+  return n.participants.map((p) => (roles.get(p) ? `${p} (${roles.get(p)})` : p)).join(", ");
+};
+
+/** Formal call minutes in Markdown: numbered sections, only those with content. Used for .md, Notion and notes apps. */
 export function toMarkdown(n: SavedNote, withTranscript = true): string {
   const c = n.note;
-  const L: string[] = [`# ${n.title}`, "", `${date(n)} · ${n.participants.join(", ")}`, ""];
+  const L: string[] = [`# ${n.title}`, "",
+    `**Date:** ${date(n)}  `, `**Participants:** ${who(n)}  `,
+    `**Status:** ${isFinal(n) ? "Confirmed by all participants" : "Draft — not yet confirmed"}`, ""];
   if (n.error) L.push(`> ${n.error}`, "");
   if (c) {
-    L.push(`**${c.outcome}**`, "");
-    if (c.uncertain_spans.length) L.push("## Please check", ...c.uncertain_spans.map((u) => `- ${u.text}`), "");
+    let k = 0;
+    const sec = (title: string, lines: string[]) => lines.length && L.push(`## ${++k}. ${title}`, ...lines, "");
+    sec("Purpose", [c.purpose || c.outcome]);
+    sec("Outcome", [c.outcome]);
+    sec("Summary", [c.summary.join(" ")]);
     if (c.items.length) {
-      L.push("## Order");
+      const rows: string[] = [];
       for (const [shop, items] of byShop(c.items)) {
-        L.push("", ...(shop ? [`**${shop}**`] : []), "| Item | Qty | Price |", "|---|---|---|");
+        rows.push(...(shop ? [`**${shop}**`, ""] : []), "| Item | Quantity | Amount |", "|---|---|---|");
         for (const i of items) {
           const p = linePrice(i);
-          L.push(`| ${i.name}${i.heard_as ? ` (heard “${i.heard_as}”)` : ""} | ${qty(i)} | ${p != null ? rupees(p) : "—"} |`);
+          rows.push(`| ${i.name}${i.heard_as ? ` (heard “${i.heard_as}”)` : ""} | ${qty(i)} | ${p != null ? rupees(p) : "—"} |`);
         }
+        rows.push("");
       }
       const tl = totalLine(n);
-      if (tl) L.push("", `**${tl}**`);
+      if (tl) rows.push(`**${tl}**`);
+      for (const s of c.stated_totals) rows.push(`Total stated on the call${s.shop ? ` (${s.shop})` : ""}: **${rupees(s.amount)}**`);
+      sec("Order details", rows);
     }
-    for (const s of c.stated_totals) L.push(`Total said on the call${s.shop ? ` (${s.shop})` : ""}: **${rupees(s.amount)}**`);
-    if (c.items.length || c.stated_totals.length) L.push("");
-    if (c.schedule.length) L.push("## When", ...c.schedule.map((s) => `- ${s.when} — ${s.what}${s.where ? ` @ ${s.where}` : ""}`), "");
-    if (c.locations.length) L.push("## Where", ...c.locations.map((l) => `- ${l.name} (${l.kind})`), "");
-    if (c.action_items.length) L.push("## To do", ...c.action_items.map((a) => `- [ ] ${a.task}${a.owner ? ` — ${a.owner}` : ""}${a.due ? ` (by ${a.due})` : ""}`), "");
-    L.push("## Summary", ...c.summary.map((s) => `- ${s}`), "");
+    sec("Decisions", c.decisions.map((d) => `- ${d.text}`));
+    sec("Action items", c.action_items.length
+      ? ["| Task | Owner | Due |", "|---|---|---|", ...c.action_items.map((a) => `| ${a.task} | ${a.owner ?? "—"} | ${a.due ?? "—"} |`)] : []);
+    sec("Schedule and locations", [...c.schedule.map((s) => `- ${s.when} — ${s.what}${s.where ? `, ${s.where}` : ""}`),
+      ...c.locations.map((l) => `- ${l.name} (${l.kind})`)]);
+    sec("Points to confirm", c.uncertain_spans.map((u) => `- ${u.text}`));
+    if (n.review?.corrections.length) sec("Corrections by participants", n.review.corrections.map((x) => `- ${x.name}: ${x.text}`));
   }
-  if (withTranscript && n.transcript.length) L.push("## Transcript", ...n.transcript.map((t) => `#${t.seq} **${t.name}:** ${t.text}`), "");
+  if (withTranscript && n.transcript.length) L.push("## Appendix: transcript", ...n.transcript.map((t) => `#${t.seq} **${t.name}:** ${t.text}`), "");
   return L.join("\n");
+}
+
+/** The same minutes as plain text, for notes apps (Samsung Notes, Keep) that show Markdown symbols raw. */
+export function toText(n: SavedNote): string {
+  return toMarkdown(n, false)
+    .split("\n")
+    .filter((l) => !/^\|[\s:|-]+\|$/.test(l))
+    .map((l) => l.replace(/^# (.*)/, (_, x: string) => x.toUpperCase()).replace(/^## /, "\n").replace(/\*\*/g, "").replace(/ {2}$/, "")
+      .replace(/^\| (.*) \|$/, (_, x: string) => `• ${x.split(" | ").join(" — ")}`))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim() + "\n\n— Saar";
 }
 
 /** WhatsApp-formatted plain text (*bold*, bullets) — the format people actually forward. */
@@ -93,6 +120,7 @@ export function toWhatsApp(n: SavedNote): string {
   const L: string[] = [`*${n.title}*`, date(n)];
   if (!c) return [...L, "", n.error || "No note."].join("\n");
   L.push("", c.outcome);
+  if (!isFinal(n)) L.push("_Draft — not yet confirmed_");
   if (c.items.length) {
     L.push("", "🛒 *Order*");
     for (const [shop, items] of byShop(c.items)) {

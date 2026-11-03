@@ -136,6 +136,19 @@ async def test_two_speakers_ordered_captions_and_notes(server: str, fake: FakeGn
         got = (await c.get(f"http://{server}/api/notes/{r.json()['final_note_id']}", headers=H(host))).json()
         assert got["kind"] == "final" and got["note"]["title"]
 
+        # both people confirm before the note is final; a correction regenerates it and asks both again
+        nid = got["id"]
+        rv = f"http://{server}/api/rooms/{code}/notes/{nid}/review"
+        assert (await c.post(rv, headers=H(host), json={"action": "confirm"})).json()["review"]["final"] is False
+        assert (await c.post(rv, headers=H(guest), json={"action": "confirm"})).json()["review"]["final"] is True
+        r = (await c.post(rv, headers=H(guest), json={"action": "correct", "text": "Atta is 3 kg"})).json()
+        assert r["status"] == "pending" and r["review"]["final"] is False
+        await wait_for(lambda: any(e["note"]["id"] == nid and e["note"]["status"] == "ready"
+                                   and e["note"]["review"]["corrections"] for e in la.of("note_ready")))
+        last = [e["note"] for e in la.of("note_ready") if e["note"]["id"] == nid][-1]
+        assert last["review"]["corrections"] == [{"name": "Ravi", "text": "Atta is 3 kg"}]
+        assert set(last["review"]["by"].values()) == {"pending"}
+
         assert (await c.delete(f"http://{server}/api/rooms/{code}/data", headers=H(host))).json() == {"deleted": True}
         await wait_for(lambda: la.of("data_deleted"))
         assert (await c.get(f"http://{server}/api/rooms/{code}/notes", headers=H(host))).json() == []
@@ -244,3 +257,36 @@ async def test_double_end_makes_one_note_and_preview(server: str, fake: FakeGnan
         assert r1.json()["final_note_id"] == r2.json()["final_note_id"]
         notes = (await c.get(f"http://{server}/api/rooms/{code}/notes", headers=H(host))).json()
         assert len([n for n in notes if n["kind"] == "final"]) == 1
+
+
+async def test_call_by_number_rings_the_other_phone(server: str, fake: FakeGnani) -> None:
+    async with httpx.AsyncClient() as c:
+        me = (await c.post(f"http://{server}/api/me", json={"phone": "98765 43210"})).json()
+        ravi = (await c.post(f"http://{server}/api/me", json={"phone": "+91 91234-56789"})).json()
+        assert ravi["phone"] == "+91 91234 56789"
+        assert (await c.post(f"http://{server}/api/me", json={"phone": "12345"})).status_code == 422
+        rings: list[dict[str, Any]] = []
+
+        async def inbox() -> None:
+            async with websockets.connect(f"ws://{server}/ws/inbox") as ws:
+                await ws.send(json.dumps({"type": "auth", "token": ravi["device_token"]}))
+                async for m in ws:
+                    rings.append(json.loads(m))
+
+        t = asyncio.ensure_future(inbox())
+        await asyncio.sleep(0.5)
+        dev = {"Authorization": f"Bearer {me['device_token']}"}
+        call = (await c.post(f"http://{server}/api/calls", headers=dev,
+                             json={"to": "9123456789", "display_name": "Asha"})).json()
+        assert call["ringing"] is True and call["role"] == "host"
+        await wait_for(lambda: rings and rings[0]["type"] == "incoming")
+        assert rings[0] == {"type": "incoming", "room_code": call["room_code"], "from_name": "Asha"}
+        await c.post(f"http://{server}/api/rooms/{call['room_code']}/join", json={"display_name": "Ravi"})
+        await wait_for(lambda: rings[-1]["type"] == "answered")
+        # nobody's phone open: the caller is told to send an invite link instead
+        off = (await c.post(f"http://{server}/api/calls", headers=dev, json={"to": "8000000000", "display_name": "Asha"})).json()
+        assert off["ringing"] is False
+        assert (await c.post(f"http://{server}/api/calls", json={"to": "8000000000", "display_name": "A"})).status_code == 401
+        assert (await c.post(f"http://{server}/api/calls", headers=dev,
+                             json={"to": "9876543210", "display_name": "A"})).status_code == 422
+        t.cancel()

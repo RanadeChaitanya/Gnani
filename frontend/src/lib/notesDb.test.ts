@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { describe, expect, it } from "vitest";
 import type { NotePayload } from "./api";
-import { deleteNote, getNote, listNotes, renameNote, saveNote, toCSV, toMarkdown, toWhatsApp } from "./notesDb";
+import { deleteNote, getNote, listNotes, renameNote, saveNote, toCSV, toMarkdown, toText, toWhatsApp } from "./notesDb";
 
 const payload = (id: string, created: string): NotePayload => ({
   id,
@@ -17,6 +17,7 @@ const payload = (id: string, created: string): NotePayload => ({
     title: "Atta order",
     note_language: "en",
     conversation_type: "order",
+    purpose: "Asha placed a grocery order with Ravi Kirana.",
     outcome: "Ravi Kirana delivers 2 kg atta and 1 litre oil to Gandhi Nagar tomorrow at 10.",
     summary: ["2 kg atta and 1 litre oil from Ravi Kirana"],
     parties: [{ name: "Ravi", role: "shopkeeper" }],
@@ -40,6 +41,7 @@ const payload = (id: string, created: string): NotePayload => ({
     stated_totals: [{ amount: 240, shop: "Ravi Kirana", evidence: [2] }],
   },
   faithfulness: { flag_count: 1, flags: [{ field: "summary[0]", value: "9999", reason: "not_found_in_transcript" }], checked_count: 4 },
+  review: { by: { a: "confirmed", b: "confirmed" }, final: true, corrections: [{ name: "Ravi", text: "Oil is 1 litre" }] },
   transcript: [{ seq: 1, participant_id: "a", name: "Asha", text: "do kilo atta", started_at: 0 }],
 });
 
@@ -58,17 +60,27 @@ describe("notesDb", () => {
     expect(await getNote("n1")).toBeUndefined();
   });
 
-  it("exports markdown with an order table per shop and totals", async () => {
+  it("exports formal minutes: numbered sections, order table, totals, status", async () => {
     const n = await saveNote(payload("n3", "2026-10-28T12:00:00"));
     const md = toMarkdown(n);
     expect(md).toContain("# Atta order");
-    expect(md).toContain("**Ravi Kirana delivers 2 kg atta and 1 litre oil to Gandhi Nagar tomorrow at 10.**");
-    expect(md).toContain("## Please check\n- Sugar: 8 kg or 50 kg?");
+    expect(md).toContain("**Participants:** Asha, Ravi (shopkeeper)");
+    expect(md).toContain("**Status:** Confirmed by all participants");
+    expect(md).toContain("## 1. Purpose\nAsha placed a grocery order with Ravi Kirana.");
+    expect(md).toContain("## 2. Outcome\nRavi Kirana delivers 2 kg atta");
+    expect(md).toContain("## 4. Order details");
     expect(md).toContain("| arhar dal (heard “har bhara daur”) | 10 kg | — |");
     expect(md).toContain("| atta | 2 kg | ₹100 |");
     expect(md).toContain("Priced items: ₹240 (+1 without price)");
+    expect(md).toContain("| Deliver atta | Ravi | tomorrow |");
     expect(md).toContain("- Gandhi Nagar (delivery)");
+    expect(md).toContain("Points to confirm\n- Sugar: 8 kg or 50 kg?");
+    expect(md).toContain("- Ravi: Oil is 1 litre");
     expect(toMarkdown(n)).toBe(md);
+    const txt = toText(n);
+    expect(txt.startsWith("ATTA ORDER")).toBe(true);
+    expect(txt).not.toContain("**");
+    expect(txt).toContain("• atta — 2 kg — ₹100");
   });
 
   it("exports WhatsApp text and CSV", async () => {

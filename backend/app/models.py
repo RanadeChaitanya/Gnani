@@ -81,6 +81,8 @@ class Note(SQLModel, table=True):
     note_json: str = ""
     faithfulness_json: str = ""
     error: str = ""
+    reviews_json: str = "{}"  # participant_id -> "confirmed"; reset whenever the note is revised
+    corrections_json: str = "[]"  # [{"name", "text"}] from the review step, fed back into the prompt
 
 
 class Usage(SQLModel, table=True):

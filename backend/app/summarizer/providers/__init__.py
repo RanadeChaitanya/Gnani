@@ -94,6 +94,7 @@ class MockProvider:
         seqs = [int(n) for n, _, _ in lines] or [1]
         note: dict[str, Any] = {
             "title": "Conversation note", "note_language": "en", "conversation_type": "general",
+            "purpose": "Mock call (no LLM).",
             "outcome": "Mock note (no LLM).",
             "summary": [f"{who}: {text}"[:120] for _, who, text in lines[:3]] or ["(no speech captured)"],
             "parties": [{"name": who, "role": "participant"} for who in sorted({w for _, w, _ in lines})],

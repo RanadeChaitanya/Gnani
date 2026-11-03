@@ -1,4 +1,4 @@
-"""Note JSON schema v2: structured for real conversations (orders, appointments, complaints)."""
+"""Note JSON schema v4: formal call minutes for real conversations (orders, appointments, complaints)."""
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -63,8 +63,10 @@ class NoteContent(BaseModel):
     title: str = Field(max_length=80)
     note_language: Literal["en", "hi", "same"]
     conversation_type: Literal["order", "appointment", "complaint", "general"]
-    outcome: str = Field(description="ONE sentence: what was agreed and what happens next")
-    summary: list[str] = Field(min_length=1, max_length=3, description="what the call was about, in your own words")
+    purpose: str = Field(description="ONE formal sentence: why the call took place")
+    outcome: str = Field(description="ONE formal sentence: what was agreed and what happens next")
+    summary: list[str] = Field(min_length=1, max_length=4,
+                               description="2-4 complete, formal sentences in your own words (minutes style)")
     parties: list[Party] = []
     items: list[Item] = []
     stated_totals: list[StatedTotal] = []

@@ -3,11 +3,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import type { Room as LkRoom } from "livekit-client";
 import { getMic, startCapture } from "../audio/capture";
-import { EndIcon, MicIcon, MicOffIcon, NoteIcon, ShareIcon, StopIcon } from "../components/icons";
+import { EndIcon, MicIcon, MicOffIcon, NoteIcon, StopIcon } from "../components/icons";
 import { api, ApiError, AppConfig, getConfig, loadSession, NotePayload, RoomState, Segment } from "../lib/api";
 import { useT } from "../lib/i18n";
 import { media, prepareMedia, releaseMedia } from "../lib/media";
-import { saveNote } from "../lib/notesDb";
+import { saveNote, SavedNote } from "../lib/notesDb";
+import type { Person } from "../lib/profile";
+import Review from "../components/Review";
 import Wave from "../components/Wave";
 
 type Provisional = { id: string; text: string; latency_ms: number };
@@ -53,7 +55,9 @@ function Room({ code }: { code: string }) {
   const pausedRef = useRef(false);
   const levels = useRef<number[]>([]);
   const wantRef = useRef(false);
-  const endedNav = useRef(false);
+  const [finalNote, setFinalNote] = useState<SavedNote | null>(null);
+  const [declined, setDeclined] = useState(false);
+  const callee = JSON.parse(sessionStorage.getItem(`saar:callee:${code}`) ?? "null") as (Person & { ringing?: boolean }) | null;
   const autoStarted = useRef(false);
   const bottom = useRef<HTMLDivElement>(null);
   const joinUrl = `${location.origin}/join/${code}`;
@@ -91,13 +95,13 @@ function Room({ code }: { code: string }) {
         break;
       case "note_ready": {
         const n = await saveNote(m.note as NotePayload);
-        setNoteMsg({ id: n.id, text: n.status === "ready" ? t("noteSaved") : `Note failed: ${n.error}` });
-        if (n.kind === "final" && !endedNav.current) {
-          endedNav.current = true;
-          nav(`/notes/${n.id}`);
-        }
+        if (n.kind === "final") setFinalNote(n);
+        else setNoteMsg({ id: n.id, text: n.status === "ready" ? t("noteSaved") : `${t("noteFailed")} ${n.error}` });
         break;
       }
+      case "declined":
+        setDeclined(true);
+        break;
       case "usage":
         stats.current.used = m.stt_seconds_used;
         stats.current.limit = m.stt_seconds_limit;
@@ -295,6 +299,14 @@ function Room({ code }: { code: string }) {
     const i = setInterval(() => tick((x) => x + 1), 500);
     return () => clearInterval(i);
   }, []);
+  // reopened after the call ended (or the note arrived while away): fetch the final note
+  useEffect(() => {
+    if (state?.status !== "ended" || finalNote) return;
+    api<{ id: string; kind: string }[]>(`/api/rooms/${code}/notes`, { token: session.token })
+      .then((l) => l.find((x) => x.kind === "final"))
+      .then((f) => f && api<NotePayload>(`/api/notes/${f.id}`, { token: session.token }).then(saveNote).then(setFinalNote))
+      .catch(() => {});
+  }, [state?.status, finalNote, code, session.token]);
   useEffect(() => {
     bottom.current?.scrollIntoView({ block: "end" }); // newer Chrome returns a Promise here: never return it as cleanup
   }, [segments.length, prov.length, partials]);
@@ -382,57 +394,74 @@ function Room({ code }: { code: string }) {
   );
 
   if (state.status === "ended")
-    return (
-      <div className="stack">
+    return finalNote ? <Review n={finalNote} me={me} token={session.token} names={Object.fromEntries(parts.map((p) => [p.id, p.name]))} />
+      : (
+      <div className="ring-screen">
         <h1>{t("ended")}</h1>
         {banners}
-        {!noteMsg && segments.length > 0 && <p className="muted">{t("noteMaking")}</p>}
-        <button className="primary" onClick={() => nav("/notes")}>{t("notes")}</button>
-        <button className="danger" onClick={() => call("/data", "DELETE")}>{t("deleteServer")}</button>
+        <p className="muted center">{segments.length || capture ? t("noteMaking") : t("noNoteNothingSaid")}</p>
+        <button className="big" onClick={() => nav("/")}>{t("home")}</button>
       </div>
     );
 
-  const header = (
-    <div className="callcard">
-      <div className="avatar">{state.solo ? "🎙️" : (other?.name[0] ?? "?").toUpperCase()}</div>
-      <div className="grow">
-        <div className="callname">{state.solo ? t("solo") : other?.name ?? t("waitingFor")}</div>
-        <div className="muted small-text">
-          {state.solo ? clock : other ? `${other.online ? t("online") : t("away")} · ${clock}` : code}
-          {quality && ` · ${quality}`}
-        </div>
-      </div>
-      <span className={`rec ${live ? "" : "off"}`}>{live ? t("transcribing") : t("paused")}</span>
-    </div>
-  );
-
-  if (state.status === "lobby")
+  const calleeName = other?.name ?? callee?.name ?? t("theOtherPerson");
+  const initial = /^\p{L}/u.test(calleeName) ? calleeName[0].toUpperCase() : "☎";
+  if (declined)
     return (
-      <div className="stack">
-        {(state.solo || other) && header}
+      <div className="ring-screen">
+        <div className="avatar xl">{calleeName[0]?.toUpperCase()}</div>
+        <h1>{t("declinedTitle").replace("{name}", calleeName)}</h1>
+        <button className="primary big" onClick={() => nav("/")}>{t("home")}</button>
+      </div>
+    );
+
+  if (state.status === "lobby") {
+    const digits = (callee?.phone ?? "").replace(/\D/g, "").slice(-10);
+    const invite = `${t("inviteText").replace("{name}", session.role === "host" ? parts[0]?.name ?? "" : "")} ${joinUrl}`;
+    const cancel = async () => {
+      await api(`/api/calls/${code}/cancel`, { body: {} }).catch(() => {});
+      await call("/end");
+      nav("/");
+    };
+    return (
+      <div className="ring-screen">
         {banners}
         {myConsent !== "granted" ? (
-          <section className="card stack">
-            <p>{t("needConsent")}</p>
-            <div className="row">
-              <button className="primary grow" onClick={() => consent("grant")}>{t("agree")}</button>
-              <button className="grow" onClick={() => nav("/")}>{t("disagree")}</button>
-            </div>
-          </section>
+          <>
+            <h1>{t("needConsent")}</h1>
+            <button className="primary big" onClick={() => consent("grant")}>{t("agree")}</button>
+            <button className="big" onClick={() => nav("/")}>{t("disagree")}</button>
+          </>
         ) : !state.solo && parts.length < 2 ? (
-          <section className="card center stack">
-            <h2>{t("waitingFor")}</h2>
-            <p className="muted">{t("scanToJoin")}</p>
-            {qr && <img src={qr} width={240} height={240} alt={`QR code to join call ${code}`} className="qr" />}
-            <div className="code">{code}</div>
-            <button className="primary" onClick={share}><ShareIcon size={18} /> {t("share")}</button>
-          </section>
+          <>
+            <div className="avatar xl pulse">{initial}</div>
+            <p className="muted">{callee?.ringing ? t("ringing") : t("notOnSaar")}</p>
+            <h1>{calleeName}</h1>
+            {callee?.phone && callee.phone !== calleeName && <p className="muted">{callee.phone}</p>}
+            {!callee?.ringing && (
+              <div className="stack full">
+                <p className="center">{t("sendInvite")}</p>
+                <a className="btn primary big" href={`https://wa.me/${digits ? "91" + digits : ""}?text=${encodeURIComponent(invite)}`} target="_blank" rel="noopener noreferrer">{t("inviteWhatsApp")}</a>
+                <a className="btn big" href={`sms:${digits ? "+91" + digits : ""}?body=${encodeURIComponent(invite)}`}>{t("inviteSms")}</a>
+                <button className="big" onClick={share}>{t("inviteOther")}</button>
+                <details className="more">
+                  <summary>{t("nextToYou")}</summary>
+                  {qr && <img src={qr} width={220} height={220} alt={t("qrAlt")} className="qr" />}
+                </details>
+              </div>
+            )}
+            <p className="muted small-text center">{t("earphones")}</p>
+            <button className="big danger" onClick={cancel}><EndIcon size={20} /> {t("cancelCall")}</button>
+          </>
         ) : (
-          <p className="muted center">{t("hostStarts")}</p>
+          <>
+            <div className="avatar xl pulse">{state.solo ? "🎙️" : calleeName[0]?.toUpperCase()}</div>
+            <h1>{t("connecting")}</h1>
+          </>
         )}
-        {!state.solo && <p className="muted center">{t("earphones")}</p>}
       </div>
     );
+  }
 
   const others = Object.entries(speaking).filter(([id, ts]) => id !== me && ts && Date.now() - ts < 4000).map(([id]) => nameOf(id));
   return (

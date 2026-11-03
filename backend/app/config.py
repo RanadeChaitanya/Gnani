@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     max_transcript_chars: int = 60000
     note_max_tokens: int = 1500
 
+    # Notion export: an internal integration token + the page it may write under (shared with the integration)
+    notion_token: str = ""
+    notion_parent_page_id: str = ""
+
     echo_dedupe: bool = True
     mic_aec: bool = True
     mic_ns: bool = True

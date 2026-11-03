@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from starlette.exceptions import HTTPException
 
-from .api import health, rooms
+from .api import calls, health, notion, rooms
 from .config import get_settings
 from .db import engine
 from .logging import setup_logging
@@ -32,6 +32,8 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="Saar", lifespan=lifespan, docs_url=None, redoc_url=None)
 app.include_router(health.router)
 app.include_router(rooms.router)
+app.include_router(calls.router)
+app.include_router(notion.router)
 
 
 def _err(status: int, code: str, message: str) -> JSONResponse:
@@ -79,6 +81,11 @@ async def security_headers(request: Request, call_next: Callable[[Request], Awai
 @app.websocket("/ws/room/{code}")
 async def ws_room(ws: WebSocket, code: str) -> None:
     await room_ws(ws, code.upper())
+
+
+@app.websocket("/ws/inbox")
+async def ws_inbox(ws: WebSocket) -> None:
+    await calls.inbox_ws(ws)
 
 
 @app.websocket("/ws/stt/{code}")

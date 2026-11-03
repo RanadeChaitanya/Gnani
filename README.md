@@ -2,19 +2,20 @@
 
 **Two people, two phones, one app-to-app call. Each phone transcribes only its own voice — after both agree — and both get a faithful, structured note.** Built on Gnani Prisma realtime speech-to-text; handles Hinglish and Marathi in the same call.
 
-| Lobby + consent | Live captions (two languages) | Note with evidence |
-|---|---|---|
-| ![](docs/screenshots/1-lobby-consent.png) | ![](docs/screenshots/2-call-captions.png) | ![](docs/screenshots/3-note.png) |
+| Call by number | It rings on their phone | Live captions | Both confirm the note | Final minutes |
+|---|---|---|---|---|
+| ![](docs/screenshots/0-home.png) | ![](docs/screenshots/2-incoming.png) | ![](docs/screenshots/3-call.png) | ![](docs/screenshots/4-review.png) | ![](docs/screenshots/5-final-note.png) |
 
 _Screenshots are from the automated two-phone test (fake mic, fake speech service, mock summariser)._
 
 ## What it does
-1. The host starts a conversation and shares a 6-character code or link; the guest joins on their own phone (max 2).
-2. Both read a versioned consent notice (English / हिन्दी) and tap **I agree**. The server — not the client — refuses capture until both have agreed.
-3. An audio-only WebRTC call connects (LiveKit). Each phone sends **only its own microphone** to Saar, which proxies it to Gnani. Captions appear on both phones, labelled by speaker, in order.
-4. **Quick note** any time, or **End** → an LLM writes a structured note (summary, key points, decisions, action items, entities, open questions, uncertain spans). Every point cites transcript line numbers; a deterministic **faithfulness check** flags any number or name not found in the transcript (⚠).
-5. Notes are saved **on each phone** (IndexedDB, works offline), exportable as Markdown. The server copy is deleted after 24 h, or immediately on request.
-6. Either person can **revoke** at any time: transcription stops for both within a second. A recording indicator is always visible while capture is on.
+1. **Set up once**: name, your mobile number, the language you speak. No accounts, no codes.
+2. **Call someone** from your contacts (Android contact picker) or by typing their number. If Saar is open on their phone, it **rings** there; otherwise you send a one-tap **WhatsApp / SMS invite link**.
+3. They tap **Accept call**. Accepting and calling are each person's explicit consent; the server refuses capture until both have agreed.
+4. An audio-only WebRTC call connects (LiveKit). Each phone sends **only its own microphone** to Saar, which proxies it to Gnani. Captions appear on both phones, labelled by speaker. Either person can **Stop** at any time.
+5. **End** → DeepSeek writes **formal call minutes**: purpose, outcome, summary, order table with code-computed totals, decisions, action items (owner, due), schedule and places, and points to confirm. A deterministic faithfulness check flags any number or name not in the transcript.
+6. **Both people confirm** the draft. "Something is wrong" sends a correction; Saar rewrites the minutes with it and both check again. Only then is the note final.
+7. Notes live **on each phone** (offline) and can be saved to **Samsung Notes / Keep** (share sheet, plain-text minutes), **Notion** (server-side integration), WhatsApp or PDF.
 
 ## Gnani models / APIs used — and where
 | Gnani API | Used for | Code |
@@ -75,13 +76,14 @@ docker compose up --build        # one container, one origin: http://localhost:8
 | `SERVER_RETENTION_HOURS` | 24 | Server text retention |
 | `DEMO_MODE` | true | Shows the "synthetic data only" banner |
 | `ECHO_DEDUPE`, `MIC_AEC`, `MIC_NS`, `MIC_AGC` | true | Echo heuristic; browser mic processing |
+| `NOTION_TOKEN` / `NOTION_PARENT_PAGE_ID` | — | Optional Notion export (internal integration + a page shared with it) |
 | `JWT_SECRET`, `RATE_LIMIT_PER_MIN`, `LOG_LEVEL`, `LOG_TRANSCRIPTS` | | Security / logging (transcripts are never logged at INFO) |
 
 Full list: [.env.example](.env.example).
 
 ## Tests
 ```bash
-cd backend && .venv/bin/pytest                 # 31 tests: unit + real-WebSocket integration vs a protocol-faithful fake Gnani
+cd backend && .venv/bin/pytest                 # 39 tests: unit + real-WebSocket integration vs a protocol-faithful fake Gnani
 cd frontend && npm test                        # resampler anti-aliasing, 1,024-byte framing, notes DB, Markdown, i18n
 cd frontend && npm run build && npx playwright test   # two browser "phones" with fake mics, end to end
 ```
@@ -93,11 +95,14 @@ cd frontend && npm run build && npx playwright test   # two browser "phones" wit
 - Capture only after **every** participant consents to the current notice version; revocable by either person at any time; always-visible indicator.
 - **No audio at rest**: audio lives only in a ~3 s in-memory send queue. Only text is stored: on the server for 24 h (or deleted on demand), on each phone until the user deletes it.
 - Third parties: Gnani (audio, for transcription), DeepSeek (transcript text, for the note), LiveKit (call audio relay).
-- No PSTN/SIP, no phone-line tapping, no accounts, no phone numbers. Display names are free text.
+- No PSTN/SIP, no phone-line tapping, no accounts. Mobile numbers are used only to ring a phone: held in server memory as keyed hashes, never in the database or logs.
 - This is a prototype, **not legal advice**. Commercial deployment in India would require a compliance review against the Digital Personal Data Protection Act, 2023 and Rules, and applicable sector rules. Details: [docs/CONSENT_AND_PRIVACY.md](docs/CONSENT_AND_PRIVACY.md).
 
 ## Limitations
-- App-to-app VoIP call, **not** phone-network calls.
+- App-to-app VoIP call, **not** phone-network calls. Numbers only route Saar calls.
+- Numbers are **not verified by SMS OTP** (no SMS provider in the prototype): someone could claim another person's number. Add OTP before real use.
+- A phone only rings while Saar is open on it (no push notifications); otherwise use the invite link.
+- Notion export writes to one workspace configured on the server (no per-user Notion login yet). Samsung Notes has no public API; Saar uses the Android share sheet.
 - Live captions type out word by word (Gnani `x-partials`); the final, ordered caption lands ~0.7 s after the speaker pauses.
 - Phone browsers may suspend the mic in the background; Saar pauses and asks you to keep it open.
 - Loudspeaker echo can duplicate captions; earphones are recommended (an echo heuristic hides likely duplicates).

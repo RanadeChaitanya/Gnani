@@ -85,3 +85,19 @@ Dev DB `backend/data/saar.db` was deleted for the v2 schema (adds `rooms.scenari
 ## Open questions
 - Billing of silence: unknown (we never send it).
 - Hindi notice wording needs a human review before shipping (spec §13.2).
+
+## v5 (2026-11-04) — call by number, formal minutes, both-sides confirmation, exports
+User feedback after v4: "no codes", "UI doesn't guide the user", "notes are poor", "make it formal", "confirm the note from both ends", "Notion / Samsung Notes".
+- **Root cause found for 'poor quality'**: real-test logs showed one phone sending 0 s / 1.2 s of audio for a whole call (stalled AudioContext). Mic watchdog rebuilds the pipeline after 2.5 s of no frames; "Fix mic" banner if the phone needs a tap; phone-side diag logged. Client IPs were still in uvicorn.error lines → redacted.
+- **Call by number** (`api/calls.py`, `/ws/inbox`): set up once (name, Indian mobile, language) → device token. Numbers are HMAC-keyed hashes in memory only. Calling rings the callee's open Saar tabs (incoming overlay: Accept = consent / Decline); otherwise WhatsApp/SMS invite link (`/join/<code>`, no code typing). Contact Picker API on Android Chrome. ASSUMED: no SMS OTP (no provider) — documented limitation.
+- **Formal minutes** (prompt v4, schema adds `purpose`): numbered sections Purpose / Outcome / Summary / Order details / Decisions / Action items / Schedule & locations / Points to confirm / Corrections. Same structure in UI (`NoteDoc`), Markdown, plain text, Notion.
+- **Both-sides review** (`POST /rooms/{code}/notes/{id}/review`): confirm / correct (≤3); a correction regenerates the same note id with the corrections in the prompt as authoritative and resets confirmations; note is final only when everyone confirmed.
+- **Exports**: phone notes app via share sheet (Samsung Notes, Keep), Notion (`POST /api/notion`, server-side token: `NOTION_TOKEN`, `NOTION_PARENT_PAGE_ID`), WhatsApp, PDF, Markdown.
+- UI: Home = setup or one big "Call someone" + recent people + notes; ringing / calling / invite / call / review screens with big buttons. Enter (code) page removed.
+- Tests: backend 39, frontend 12, e2e 3 (call-by-number ring → accept → captions → stop/resume → correction → both confirm; invite link + room full; mic self-heal).
+- Dev DB reset for new `notes` columns (no migrations; data is 24 h-ephemeral).
+
+### Next (blocked on human)
+1. Real two-phone test of v5 (link from the latest tunnel).
+2. Notion: create an internal integration, share a page with it, put `NOTION_TOKEN` + `NOTION_PARENT_PAGE_ID` in `.env`.
+3. Checkpoints C/D unchanged (eval budget, deploy, handles).

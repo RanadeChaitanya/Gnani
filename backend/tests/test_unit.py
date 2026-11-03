@@ -166,6 +166,7 @@ SEGS = [{"seq": 1, "text": "Bhaiya do kilo atta aur ek litre tel, atta pachas ru
 def _note(**kw: object) -> dict[str, object]:
     n: dict[str, object] = {
         "title": "Atta and oil order", "note_language": "en", "conversation_type": "order",
+        "purpose": "Grocery order.",
         "outcome": "Ramesh delivers 2 kg atta and 1 litre oil to Gandhi Nagar tomorrow at 10.",
         "summary": ["2 kg atta and 1 litre oil, total ₹240"],
         "parties": [{"name": "Ramesh", "role": "shopkeeper"}],
@@ -258,7 +259,7 @@ async def _room_with_segments() -> Room:
     return room
 
 
-VALID = {"title": "T", "note_language": "en", "conversation_type": "order", "outcome": "o", "summary": ["s"],
+VALID = {"title": "T", "note_language": "en", "conversation_type": "order", "purpose": "p", "outcome": "o", "summary": ["s"],
          "items": [{"name": "atta", "quantity": 2, "unit": "kg", "evidence": [2]}]}
 
 
@@ -382,3 +383,11 @@ async def test_llm_budget_refuses_before_any_request(tmp_path: "__import__('path
     with pytest.raises(BudgetExceeded):
         await p.generate_note("s" * 2000, "u", max_tokens=1500, timeout_s=1)
     assert abs(ledger.spent() - 0.1986) < 1e-9  # refused call cost nothing
+
+
+def test_notion_blocks_from_note_markdown() -> None:
+    from app.api.notion import md_to_blocks
+    b = md_to_blocks("# T\n\n**Outcome here.**\n\n## Items\n| Item | Qty |\n|---|---|\n| atta | 2 kg |\n- Gandhi Nagar")
+    assert [x["type"] for x in b] == ["paragraph", "heading_2", "bulleted_list_item", "bulleted_list_item", "bulleted_list_item"]
+    assert b[0]["paragraph"]["rich_text"][0]["annotations"]["bold"] is True
+    assert b[3]["bulleted_list_item"]["rich_text"][0]["text"]["content"] == "atta · 2 kg"
