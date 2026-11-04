@@ -11,16 +11,16 @@ async function setUp(browser: Browser, name: string, number: string, lang: strin
   await page.getByLabel("Name").fill(name);
   await page.getByLabel("Your mobile number").fill(number);
   if (lang !== "auto") {
-    await page.getByText("Language: detected automatically").click();
+    await page.getByText("Language: Auto").click();
     await page.getByRole("combobox").selectOption(lang);
   }
   await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page.getByRole("button", { name: /Call someone/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Call" })).toBeVisible();
   return page;
 }
 
 async function dial(page: Page, number: string) {
-  await page.getByRole("button", { name: /Call someone/ }).click();
+  await page.getByRole("button", { name: "Call" }).click();
   await page.getByLabel("Mobile number").fill(number);
   await page.getByRole("button", { name: "Call", exact: true }).click();
   await expect(page).toHaveURL(/\/room\//);
@@ -36,10 +36,10 @@ test("call by number: it rings, accept, captions on both, stop/resume, both conf
   await expect(live(host)).toHaveCount(0); // nothing is transcribed until the other person accepts
   await shot(host, "1-calling");
 
-  await expect(guest.getByRole("dialog", { name: "Incoming Saar call" })).toBeVisible({ timeout: 10_000 });
+  await expect(guest.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
   await expect(guest.getByRole("heading", { name: "Asha" })).toBeVisible();
   await shot(guest, "2-incoming");
-  await guest.getByRole("button", { name: "Accept call" }).click();
+  await guest.getByRole("button", { name: "Accept" }).click();
 
   for (const p of [host, guest]) {
     await expect(live(p)).toBeVisible({ timeout: 10_000 });
@@ -57,19 +57,19 @@ test("call by number: it rings, accept, captions on both, stop/resume, both conf
   for (const p of [host, guest]) await expect(live(p)).toBeVisible({ timeout: 10_000 });
 
   await host.getByRole("button", { name: "End" }).click();
-  for (const p of [host, guest]) await expect(p.getByText("Is this note correct?")).toBeVisible({ timeout: 20_000 });
+  for (const p of [host, guest]) await expect(p.getByRole("button", { name: /Confirm/ })).toBeVisible({ timeout: 20_000 });
   await expect(guest.getByText("Draft", { exact: true })).toBeVisible();
   await shot(guest, "4-review");
 
   // a correction rewrites the note and asks both again
-  await guest.getByRole("button", { name: /Something is wrong/ }).click();
+  await guest.getByRole("button", { name: "Fix" }).click();
   await guest.getByLabel("What should change?").fill("Atta is 3 kg");
   await guest.getByRole("button", { name: "Send correction" }).click();
   for (const p of [host, guest]) await expect(p.getByText("Ravi: Atta is 3 kg")).toBeVisible({ timeout: 20_000 });
 
-  await host.getByRole("button", { name: /Yes, the note is correct/ }).click();
+  await host.getByRole("button", { name: /Confirm/ }).click();
   await expect(host.getByText("Waiting for Ravi to confirm…")).toBeVisible();
-  await guest.getByRole("button", { name: /Yes, the note is correct/ }).click();
+  await guest.getByRole("button", { name: /Confirm/ }).click();
   for (const p of [host, guest]) {
     await expect(p.getByText("Confirmed by all participants")).toBeVisible();
     await expect(p.getByRole("button", { name: /Phone notes/ })).toBeVisible();
@@ -85,27 +85,28 @@ test("call by number: it rings, accept, captions on both, stop/resume, both conf
   await host.getByText("Transcript, Markdown file, delete").click();
   host.once("dialog", (d) => d.accept());
   await host.getByRole("button", { name: "Delete" }).click();
-  await expect(host.getByText(/No notes yet/)).toBeVisible();
+  await expect(host.getByRole("button", { name: "Call" })).toBeVisible();
+  await expect(host.locator(".note-row")).toHaveCount(0);
 });
 
 test("not on Saar: invite link, one tap to accept; a third person can't join", async ({ browser }) => {
   const host = await setUp(browser, "Meena", "99887 76655", "auto");
   await dial(host, "8000000001");
-  await expect(host.getByText("Not on Saar right now")).toBeVisible();
-  await expect(host.getByRole("link", { name: "Send invite on WhatsApp" })).toHaveAttribute("href", /wa\.me\/918000000001\?text=/);
+  await expect(host.getByText(/Not on Saar/)).toBeVisible();
+  await expect(host.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /wa\.me\/918000000001\?text=/);
   const code = host.url().split("/room/")[1];
 
   const guest = await (await browser.newContext(phone)).newPage();
   await guest.goto(`/join/${code}`);
   await expect(guest.getByRole("heading", { name: "Meena" })).toBeVisible();
   await guest.getByLabel("Name").fill("Sunil");
-  await guest.getByRole("button", { name: "Accept call" }).click();
+  await guest.getByRole("button", { name: "Accept" }).click();
   for (const p of [host, guest]) await expect(live(p)).toBeVisible({ timeout: 10_000 });
 
   const third = await (await browser.newContext()).newPage();
   await third.goto(`/join/${code}`);
   await expect(third.getByText("This call already has two people.")).toBeVisible();
-  await expect(third.getByRole("button", { name: "Accept call" })).toBeDisabled();
+  await expect(third.getByRole("button", { name: "Accept" })).toBeDisabled();
 });
 
 test("a frozen mic pipeline is detected and rebuilt by itself", async ({ browser }) => {
@@ -122,8 +123,7 @@ test("a frozen mic pipeline is detected and rebuilt by itself", async ({ browser
     };
   });
   await page.reload();
-  await page.getByText(/How it works/).click();
-  await page.getByRole("button", { name: "Try alone" }).click();
+  await page.getByRole("button", { name: "Test" }).click();
   await expect(live(page)).toBeVisible({ timeout: 10_000 });
   await page.waitForTimeout(1500);
   // what phones did in the real test: the audio engine silently stops

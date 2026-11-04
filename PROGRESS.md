@@ -109,3 +109,9 @@ User feedback after v4: "no codes", "UI doesn't guide the user", "notes are poor
 - Notes prompt v5: compact fragments (≤12 words), key points list, no paragraphs; UI/Markdown: Purpose/Outcome facts box, To confirm, Key points, Order table, Agreed, To do checklist, When and where.
 - Share tiles: Phone notes (share sheet), Notion (server API when `NOTION_TOKEN`+`NOTION_PARENT_PAGE_ID` set; otherwise copies Markdown and opens notion.so/new to paste), WhatsApp, PDF.
 - Tests: backend 40, frontend 12, e2e 3.
+
+## v7 (2026-11-04) — giant buttons, call-end cutoff, honest provider notice
+- Home: one giant Call button; steps, greetings and hints removed; QR removed; debug only via `?debug`.
+- Closing Saar mid-call now ends the call after 20 s (`LEFT_GRACE_S`), so the other mic cannot keep streaming to Gnani.
+- Notice 2026-11-v2: no no-training promise is possible from public terms (see docs/CONSENT_AND_PRIVACY.md). Hindi wording still needs human review.
+- Tests: backend 42, frontend 12, e2e 3.

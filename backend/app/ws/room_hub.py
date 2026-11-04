@@ -21,6 +21,7 @@ log = logging.getLogger("saar.hub")
 HOLD_S = 1.5
 ECHO_WINDOW_S = 0.6
 ECHO_SIMILARITY = 85
+LEFT_GRACE_S = 20.0  # longer than a network blip: then the call is over and no more audio may leave
 
 
 class SttSessionLike(Protocol):
@@ -49,6 +50,7 @@ class RoomHub:
         self.stt_failed = False
         self.lock = asyncio.Lock()
         self.online: dict[str, int] = {}  # participant_id -> open room sockets
+        self.leave_tasks: set[asyncio.Task[None]] = set()
         self.usage_base = _db_usage_seconds(code)
 
     # ---- broadcast ----
@@ -70,6 +72,14 @@ class RoomHub:
         self.stt.clear()
         await asyncio.gather(*(s.stop(reason) for s in sessions), return_exceptions=True)
         await self.broadcast({"type": "capture_state", "active": False, "reason": reason, "by": by})
+
+    async def end_if_gone(self, participant_id: str) -> None:
+        """Someone closed Saar without End: the other mic must not keep streaming to Gnani."""
+        await asyncio.sleep(LEFT_GRACE_S)
+        if self.online.get(participant_id, 0) > 0:
+            return
+        from ..api.rooms import end_room  # rooms imports this module
+        await end_room(self.code)
 
     # ---- segments: reorder + echo dedupe ----
     def add_segment(self, seg: dict[str, Any], hold_s: float = HOLD_S) -> None:
@@ -182,3 +192,7 @@ async def room_ws(ws: WebSocket, code: str) -> None:
                 room = s.exec(select(Room).where(Room.code == code)).first()
             if room:
                 await hub.broadcast({"type": "room_state", **room_state(room)})
+                if room.status == "active" and hub.online[me] <= 0:
+                    t = asyncio.ensure_future(hub.end_if_gone(me))
+                    hub.leave_tasks.add(t)
+                    t.add_done_callback(hub.leave_tasks.discard)

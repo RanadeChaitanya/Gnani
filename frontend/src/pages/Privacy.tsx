@@ -4,7 +4,7 @@ import { useT } from "../lib/i18n";
 import { deleteAllNotes } from "../lib/notesDb";
 
 export default function Privacy() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [cfg, setCfg] = useState<AppConfig | null>(null);
   const [msg, setMsg] = useState("");
   useEffect(() => void getConfig().then(setCfg), []);
@@ -13,12 +13,15 @@ export default function Privacy() {
   return (
     <>
       <h1>{t("privacy")}</h1>
+      <div dir="auto" className="notice">
+        {(lang === "hi" ? cfg?.notice.text_hi : cfg?.notice.text_en)?.split("\n").map((l, i) => <p key={i}>{l.replace(/\*\*/g, "")}</p>)}
+      </div>
       <table>
         <thead><tr><th>Data</th><th>Where</th><th>How long</th></tr></thead>
         <tbody>
-          <tr><td>Your voice audio</td><td>Streamed to Gnani AI for transcription; relayed to the other phone by LiveKit</td><td>Never saved by Saar</td></tr>
+          <tr><td>Your voice audio</td><td>Streamed to Gnani AI for transcription; relayed to the other phone by LiveKit</td><td>Never saved by Saar. Stops when the call ends. What Gnani AI keeps is under its own terms.</td></tr>
           <tr><td>Transcript text and notes</td><td>Saar server (so both phones receive them)</td><td>Up to {cfg?.retention_hours ?? 24} h, then deleted</td></tr>
-          <tr><td>Transcript text</td><td>DeepSeek (the AI model that writes the note)</td><td>Per DeepSeek's API terms</td></tr>
+          <tr><td>Transcript text</td><td>DeepSeek (the AI model that writes the note)</td><td>Under DeepSeek's own terms. May be processed in China. Sent once per note and once per correction.</td></tr>
           <tr><td>Saved notes</td><td>This device only (IndexedDB)</td><td>Until you delete them</td></tr>
           <tr><td>Consent log</td><td>Saar server: who agreed, when, notice version (no IP)</td><td>Same {cfg?.retention_hours ?? 24} h</td></tr>
         </tbody>

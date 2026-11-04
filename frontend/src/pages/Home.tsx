@@ -1,7 +1,8 @@
 // The whole app on one screen: set up once → call someone → your notes.
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { MicIcon } from "../components/icons";
+import Consent from "../components/Consent";
+import { EndIcon } from "../components/icons";
 import { api, ApiError, getConfig, Language, saveSession, Session } from "../lib/api";
 import { useT } from "../lib/i18n";
 import { prepareMedia } from "../lib/media";
@@ -12,18 +13,6 @@ import { canPickContact, getProfile, people, pickContact, Person, Profile, remem
 export default function Home({ onProfile }: { onProfile: (p: Profile) => void }) {
   const profile = getProfile();
   return profile ? <CallHome profile={profile} /> : <Setup onDone={onProfile} />;
-}
-
-function Steps() {
-  const { t } = useT();
-  return (
-    <ol className="steps">
-      <li><b>1</b><span>{t("step1")}</span></li>
-      <li><b>2</b><span>{t("step2")}</span></li>
-      <li><b>3</b><span>{t("step3")}</span></li>
-      <li><b>4</b><span>{t("step4")}</span></li>
-    </ol>
-  );
 }
 
 export function useLanguages() {
@@ -53,27 +42,21 @@ function Setup({ onDone }: { onDone: (p: Profile) => void }) {
     }
   }
   return (
-    <form className="stack" onSubmit={submit}>
-      <div className="greet"><h1>{t("welcome")}</h1><p className="muted">{t("welcomeSub")}</p></div>
-      <Steps />
-      <section className="card stack">
-        <h2>{t("setupOnce")}</h2>
-        <label>{t("name")}<input value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} autoComplete="name" /></label>
-        <label>{t("yourMobile")}
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} required inputMode="tel" autoComplete="tel" placeholder="98765 43210" />
+    <form className="stack gap-top" onSubmit={submit}>
+      <label>{t("name")}<input value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} autoComplete="name" /></label>
+      <label>{t("yourMobile")}
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} required inputMode="tel" autoComplete="tel" placeholder="98765 43210" />
+      </label>
+      <details className="more">
+        <summary>{t("autoLang")}</summary>
+        <label>{t("language")}
+          <select value={lang} onChange={(e) => setLang(e.target.value)}>
+            {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+          </select>
         </label>
-        <details className="more">
-          <summary>{t("autoLang")}</summary>
-          <label>{t("language")}
-            <select value={lang} onChange={(e) => setLang(e.target.value)}>
-              {langs.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
-            </select>
-          </label>
-        </details>
-        {err && <div className="error" role="alert">{err}</div>}
-        <button className="primary big" disabled={busy}>{busy ? "…" : t("continue")}</button>
-        <p className="muted small-text">{t("numberPrivacy")}</p>
-      </section>
+      </details>
+      {err && <div className="error" role="alert">{err}</div>}
+      <button className="primary giant" disabled={busy}>{busy ? "…" : t("continue")}</button>
     </form>
   );
 }
@@ -127,60 +110,48 @@ function CallHome({ profile }: { profile: Profile }) {
 
   return (
     <div className="stack">
-      <div className="greet">
-        <div className="muted">{t(new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening")}, {profile.name}</div>
-        <h1>{t("homeTitle")}</h1>
-      </div>
-
       {!picking ? (
-        <button className="call-btn" onClick={() => setPicking(true)}>
-          <span className="big-mic"><MicIcon size={34} /></span>
-          <span><strong>{t("callSomeone")}</strong><br /><span className="muted">{t("callSomeoneSub")}</span></span>
+        <button className="call-giant" onClick={() => setPicking(true)}>
+          <EndIcon size={64} />
+          {t("call")}
         </button>
       ) : (
-        <section className="card stack">
-          <h2>{t("whoToCall")}</h2>
-          {canPickContact() && <button className="primary big" disabled={busy} onClick={fromContacts}>👥 {t("fromContacts")}</button>}
+        <div className="stack gap-top">
+          {canPickContact() && <button className="primary giant" disabled={busy} onClick={fromContacts}>{t("fromContacts")}</button>}
           {people().map((p) => (
             <button key={p.phone} className="person" disabled={busy} onClick={() => call(p)}>
-              <span className="avatar">{p.name[0]?.toUpperCase()}</span>
-              <span className="grow"><strong>{p.name}</strong><br /><span className="muted">{p.phone}</span></span>
-              <span className="call-chip">{t("call")}</span>
+              <span className="avatar">{/^\p{L}/u.test(p.name) ? p.name[0].toUpperCase() : "☎"}</span>
+              <span className="grow"><strong>{p.name}</strong></span>
+              <EndIcon size={22} />
             </button>
           ))}
-          <form className="row" onSubmit={(e) => { e.preventDefault(); void call({ name: number, phone: number }); }}>
-            <input className="grow" value={number} onChange={(e) => setNumber(e.target.value)} inputMode="tel" required
+          <form className="stack" onSubmit={(e) => { e.preventDefault(); void call({ name: number, phone: number }); }}>
+            <input className="number" value={number} onChange={(e) => setNumber(e.target.value)} inputMode="tel" required
               placeholder={t("typeNumber")} aria-label={t("typeNumber")} />
-            <button className="primary" disabled={busy}>{t("call")}</button>
+            <button className="primary giant" disabled={busy}>{busy ? "…" : t("call")}</button>
           </form>
-          <p className="muted small-text">🔒 {t("consentShort")}</p>
+          <Consent />
           <button className="linkish" onClick={() => setPicking(false)}>{t("cancel")}</button>
-        </section>
+        </div>
       )}
       {err && <div className="error" role="alert">{err}</div>}
 
-      <section className="stack">
-        <div className="row"><h2 className="grow">{t("yourNotes")}</h2>{notes.length > 3 && <Link to="/notes">{t("seeAll")}</Link>}</div>
-        {notes.length === 0 && <p className="muted">{t("noNotesYet")}</p>}
-        {notes.length > 0 && <div className="list card">
+      {!picking && notes.length > 0 && (
+        <div className="list">
           {notes.slice(0, 3).map((n) => (
             <Link key={n.id} to={`/notes/${n.id}`} className="note-row">
-              <div className="grow">
-                <div className="note-title">{n.title}</div>
-                <div className="muted small-text">{new Date(n.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })} · {n.participants.join(", ")}</div>
-              </div>
+              <div className="grow note-title">{n.title}</div>
               <span className={`status ${isFinal(n) ? "ok" : "draft"}`}>{isFinal(n) ? t("confirmed") : t("draft")}</span>
             </Link>
           ))}
-        </div>}
-      </section>
-
-      <details className="more">
-        <summary>{t("howItWorks")}</summary>
-        <Steps />
-        <button className="big" disabled={busy} onClick={() => call(null)}>{t("soloShort")}</button>
-        <p className="muted small-text">{t("signedInAs")} {profile.phone} · <Link to="/privacy" className="muted">{t("privacy")}</Link></p>
-      </details>
+        </div>
+      )}
+      {!picking && (
+        <div className="row center small-text">
+          <button className="linkish" disabled={busy} onClick={() => call(null)}>{t("soloShort")}</button>
+          <Link to="/privacy" className="muted">{t("privacy")}</Link>
+        </div>
+      )}
     </div>
   );
 }

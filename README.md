@@ -83,7 +83,7 @@ Full list: [.env.example](.env.example).
 
 ## Tests
 ```bash
-cd backend && .venv/bin/pytest                 # 39 tests: unit + real-WebSocket integration vs a protocol-faithful fake Gnani
+cd backend && .venv/bin/pytest                 # 42 tests: unit + real-WebSocket integration vs a protocol-faithful fake Gnani
 cd frontend && npm test                        # resampler anti-aliasing, 1,024-byte framing, notes DB, Markdown, i18n
 cd frontend && npm run build && npx playwright test   # two browser "phones" with fake mics, end to end
 ```
@@ -97,6 +97,9 @@ cd frontend && npm run build && npx playwright test   # two browser "phones" wit
 - Third parties: Gnani (audio, for transcription), DeepSeek (transcript text, for the note), LiveKit (call audio relay).
 - No PSTN/SIP, no phone-line tapping, no accounts. Mobile numbers are used only to ring a phone: held in server memory as keyed hashes, never in the database or logs.
 - This is a prototype, **not legal advice**. Commercial deployment in India would require a compliance review against the Digital Personal Data Protection Act, 2023 and Rules, and applicable sector rules. Details: [docs/CONSENT_AND_PRIVACY.md](docs/CONSENT_AND_PRIVACY.md).
+
+## What Saar cannot promise about providers
+Saar stops sending audio to Gnani when the call ends, and ends the call within 20 s if a phone closes the app (both tested). It cannot promise what Gnani or DeepSeek do with data they received: neither publishes a no-training commitment for this API use. Gnani's public privacy policy and EULA do not address audio or model training; DeepSeek's privacy policy lists model training as a purpose and says it may store data in China. A real no-training guarantee needs a written agreement or self-hosting.
 
 ## Limitations
 - App-to-app VoIP call, **not** phone-network calls. Numbers only route Saar calls.

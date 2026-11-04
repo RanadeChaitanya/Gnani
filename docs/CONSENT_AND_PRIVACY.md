@@ -26,3 +26,9 @@ No accounts, no phone numbers, no emails. Logs never contain transcripts (unless
 
 ## Legal posture
 This is a prototype for a hackathon, using synthetic or consenting-teammate conversations only. **This is not legal advice. Commercial deployment in India would require a compliance review against the Digital Personal Data Protection Act, 2023 and Rules, and applicable sector rules.** Official source: ⟦preferred MeitY link — to confirm with the team⟧.
+
+## Provider data use (checked 2026-11-04)
+- **End of call:** audio stops reaching Gnani when the call ends, is stopped, or 20 s after a phone closes Saar. Tested: `test_no_audio_reaches_gnani_after_the_call_ends`, `test_closing_saar_mid_call_ends_it_for_both`.
+- **Gnani:** the public privacy policy and EULA do not mention audio, voice data or model training; the EULA allows collected data to be used to enhance product performance. No opt-out is documented. Get written confirmation, or use their private/on-prem deployment.
+- **DeepSeek:** the Open Platform terms do not address training; the privacy policy lists model training as a purpose, offers an opt-out by email (privacy@deepseek.com), and does not clearly cover API use. Data may be stored in China.
+- Saar therefore makes **no no-training promise** to users. The consent notice (2026-11-v2) says so.

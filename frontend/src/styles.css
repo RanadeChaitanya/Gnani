@@ -238,3 +238,13 @@ ul.todo li > span:first-child { flex: none; width: 20px; text-align: center; }
 .tile { flex-direction: column; align-items: flex-start; gap: 2px; min-height: 104px; border-radius: 18px; padding: 14px; text-align: left; background: var(--solid); }
 .tile .tile-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 6px; }
 .tile .muted { font-size: 12px; font-weight: 400; }
+
+/* v7: giant buttons, almost no text */
+.gap-top { margin-top: 20px; }
+.giant { width: 100%; min-height: 84px; font-size: 24px; font-weight: 700; border-radius: 28px; text-decoration: none; }
+.call-giant { align-self: center; width: min(68vw, 280px); height: min(68vw, 280px); margin: 44px 0 32px; border-radius: 50%; flex-direction: column; gap: 10px;
+  background: var(--accent); color: var(--accent-fg); border: none; font-size: 30px; font-weight: 800; box-shadow: 0 0 0 16px var(--accent-soft), 0 18px 40px rgba(20, 60, 45, 0.28); }
+input.number { min-height: 76px; font-size: 26px; text-align: center; letter-spacing: 1px; border-radius: 24px; }
+.ring-screen { justify-content: center; min-height: 70dvh; }
+.person { min-height: 76px; font-size: 19px; }
+button.giant.accept { background: #1f8a5b; border-color: #1f8a5b; color: #fff; }

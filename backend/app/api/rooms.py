@@ -171,9 +171,12 @@ def _segment_count(room_id: str) -> int:
 
 @router.post("/rooms/{code}/end")
 async def end(ra: tuple[Room, Claims] = Depends(auth)) -> dict[str, Any]:
-    hub = get_hub(ra[0].code)
-    async with hub.lock:  # both phones may press End at once: exactly one final note
-        return await _end(ra[0].code)
+    return await end_room(ra[0].code)
+
+
+async def end_room(code: str) -> dict[str, Any]:
+    async with get_hub(code).lock:  # both phones may press End at once: exactly one final note
+        return await _end(code)
 
 
 async def _end(code: str) -> dict[str, Any]:

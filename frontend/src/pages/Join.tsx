@@ -2,6 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, ApiError, Preview, saveSession, Session } from "../lib/api";
+import Consent from "../components/Consent";
 import { Key, useT } from "../lib/i18n";
 import { prepareMedia } from "../lib/media";
 import { getProfile } from "../lib/profile";
@@ -51,7 +52,6 @@ export default function Join() {
   return (
     <form className="ring-screen" onSubmit={accept}>
       <div className="avatar xl">{preview?.host_name?.[0]?.toUpperCase() ?? "…"}</div>
-      <p className="muted">{t("invitedBy")}</p>
       <h1>{preview?.host_name ?? "…"}</h1>
       {over && <div className="error">{preview!.full ? t("roomFull") : t("callOver")}</div>}
       {!profile && (
@@ -67,10 +67,10 @@ export default function Join() {
           </details>
         </div>
       )}
-      <p className="muted small-text center">🔒 {t("consentShort")}</p>
+      <Consent />
       {err && <div className="error" role="alert">{err}</div>}
-      <button className="primary big accept" disabled={busy || !!over}>{busy ? "…" : t("acceptJoin")}</button>
-      <button type="button" className="big" onClick={() => nav("/")}>{t("notNow")}</button>
+      <button className="primary giant accept" disabled={busy || !!over}>{busy ? "…" : t("acceptJoin")}</button>
+      <button type="button" className="linkish" onClick={() => nav("/")}>{t("notNow")}</button>
     </form>
   );
 }

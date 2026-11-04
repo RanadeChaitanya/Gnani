@@ -290,3 +290,37 @@ async def test_call_by_number_rings_the_other_phone(server: str, fake: FakeGnani
         assert (await c.post(f"http://{server}/api/calls", headers=dev,
                              json={"to": "9876543210", "display_name": "A"})).status_code == 422
         t.cancel()
+
+
+async def test_no_audio_reaches_gnani_after_the_call_ends(server: str, fake: FakeGnani) -> None:
+    async with httpx.AsyncClient() as c:
+        code, host, guest = await setup_room(server, c)
+        a, _ = await open_stt(server, code, host["token"])
+        await speak(a)
+        assert fake.active == 1
+        await c.post(f"http://{server}/api/rooms/{code}/end", headers=H(guest))
+        await wait_for(lambda: fake.active == 0)
+        sent = len(fake.frame_times)
+        try:  # a stale phone keeps pushing audio
+            for _ in range(30):
+                await a.send(LOUD)
+        except websockets.ConnectionClosed:
+            pass
+        await asyncio.sleep(0.5)
+        assert len(fake.frame_times) == sent and fake.active == 0
+
+
+async def test_closing_saar_mid_call_ends_it_for_both(server: str, fake: FakeGnani, monkeypatch: Any) -> None:
+    monkeypatch.setattr("app.ws.room_hub.LEFT_GRACE_S", 0.2)
+    async with httpx.AsyncClient() as c:
+        code, host, guest = await setup_room(server, c)
+        la, lb = Listener(), Listener()
+        ta = asyncio.ensure_future(la.run(server, code, host["token"]))
+        tb = asyncio.ensure_future(lb.run(server, code, guest["token"]))
+        await wait_for(lambda: la.of("room_state") and lb.of("room_state"))
+        a, _ = await open_stt(server, code, host["token"])
+        await speak(a)
+        tb.cancel()  # the guest's phone is gone; the host's mic is still streaming
+        await wait_for(lambda: fake.active == 0)
+        await wait_for(lambda: la.of("room_state")[-1]["status"] == "ended")
+        ta.cancel()

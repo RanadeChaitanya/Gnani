@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
+import Consent from "./Consent";
 import { useT } from "../lib/i18n";
 import { Incoming, Profile } from "../lib/profile";
 import { acceptCall, errText } from "../pages/Join";
@@ -26,12 +27,11 @@ export default function IncomingCall({ ring, profile, onDone }: { ring: Incoming
     <div className="overlay" role="dialog" aria-modal="true" aria-label={t("incoming")}>
       <div className="ring-screen">
         <div className="avatar xl pulse">{ring.from_name[0]?.toUpperCase()}</div>
-        <p className="muted">{t("incoming")}</p>
         <h1>{ring.from_name}</h1>
-        <p className="muted small-text center">🔒 {t("consentShort")}</p>
+        <Consent />
         {err && <div className="error" role="alert">{err}</div>}
-        <button className="primary big accept" disabled={busy} onClick={accept}>{busy ? "…" : t("acceptJoin")}</button>
-        <button className="big danger" onClick={() => { void api(`/api/calls/${ring.room_code}/decline`, { body: {} }); onDone(); }}>{t("decline")}</button>
+        <button className="primary giant accept" disabled={busy} onClick={accept}>{busy ? "…" : t("acceptJoin")}</button>
+        <button className="giant danger" onClick={() => { void api(`/api/calls/${ring.room_code}/decline`, { body: {} }); onDone(); }}>{t("decline")}</button>
       </div>
     </div>
   );

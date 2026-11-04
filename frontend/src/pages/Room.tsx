@@ -1,4 +1,3 @@
-import QRCode from "qrcode";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import type { Room as LkRoom } from "livekit-client";
@@ -40,12 +39,11 @@ function Room({ code }: { code: string }) {
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
   const [noteMsg, setNoteMsg] = useState<{ id?: string; text: string } | null>(null);
-  const [debug, setDebug] = useState(false);
+  const debug = location.search.includes("debug"); // support only: /room/CODE?debug
   const [quality, setQuality] = useState("");
   const [audioBlocked, setAudioBlocked] = useState(false);
   const [mediaReady, setMediaReady] = useState(!!media.mic);
   const [level, setLevel] = useState(0);
-  const [qr, setQr] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [, tick] = useState(0);
   const stats = useRef({ gnani: [] as number[], dropped: 0, reconnects: 0, used: 0, limit: 0, frames: 0, lastLoud: 0, capSince: 0, lastLevelSent: 0, lastFrame: 0, heals: 0, lastHeal: 0, lastDiag: 0 });
@@ -63,7 +61,6 @@ function Room({ code }: { code: string }) {
   const joinUrl = `${location.origin}/join/${code}`;
 
   useEffect(() => void getConfig().then(setCfg).catch((e) => setErr(e.message)), []);
-  useEffect(() => void QRCode.toDataURL(joinUrl, { margin: 1, width: 240 }).then(setQr), [joinUrl]);
 
   // ---------- room events ----------
   const onRoomEvent = useCallback(async (m: Record<string, any>) => {
@@ -440,18 +437,12 @@ function Room({ code }: { code: string }) {
             {callee?.phone && callee.phone !== calleeName && <p className="muted">{callee.phone}</p>}
             {!callee?.ringing && (
               <div className="stack full">
-                <p className="center">{t("sendInvite")}</p>
-                <a className="btn primary big" href={`https://wa.me/${digits ? "91" + digits : ""}?text=${encodeURIComponent(invite)}`} target="_blank" rel="noopener noreferrer">{t("inviteWhatsApp")}</a>
-                <a className="btn big" href={`sms:${digits ? "+91" + digits : ""}?body=${encodeURIComponent(invite)}`}>{t("inviteSms")}</a>
-                <button className="big" onClick={share}>{t("inviteOther")}</button>
-                <details className="more">
-                  <summary>{t("nextToYou")}</summary>
-                  {qr && <img src={qr} width={220} height={220} alt={t("qrAlt")} className="qr" />}
-                </details>
+                <a className="btn primary giant" href={`https://wa.me/${digits ? "91" + digits : ""}?text=${encodeURIComponent(invite)}`} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                <a className="btn giant" href={`sms:${digits ? "+91" + digits : ""}?body=${encodeURIComponent(invite)}`}>SMS</a>
+                <button className="linkish" onClick={share}>{t("inviteOther")}</button>
               </div>
             )}
-            <p className="muted small-text center">{t("earphones")}</p>
-            <button className="big danger" onClick={cancel}><EndIcon size={20} /> {t("cancelCall")}</button>
+            <button className="giant danger" onClick={cancel}>{t("cancelCall")}</button>
           </>
         ) : (
           <>
@@ -488,7 +479,6 @@ function Room({ code }: { code: string }) {
         ].join("\n")}</pre>
       )}
       <section className="captions captions-card" aria-live="polite" aria-label="Live captions">
-        {visible.length === 0 && prov.length === 0 && <p className="muted center">Start talking — captions appear here on both phones.</p>}
         {visible.map((s) => (
           <div key={s.seq} id={`seg-${s.seq}`} className={`bubble ${s.participant_id === me ? "mine" : ""} ${s.possible_echo ? "echo" : ""}`}>
             <div className="who">{s.name}</div>
@@ -516,7 +506,6 @@ function Room({ code }: { code: string }) {
         <button className="ctl" onClick={() => consent("revoke")}><span className="ring"><StopIcon /></span>{t("revoke")}</button>
         <button className="ctl end" onClick={end}><span className="ring"><EndIcon /></span>{t("end")}</button>
       </nav>
-      <button className="linkish" onClick={() => setDebug(!debug)} aria-pressed={debug}>{t("debug")}</button>
     </div>
   );
 }

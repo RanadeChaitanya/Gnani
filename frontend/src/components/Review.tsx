@@ -36,7 +36,6 @@ export default function Review({ n, me, token, names }: { n: SavedNote; me: stri
       <div className="ring-screen">
         <div className="spinner" aria-hidden="true" />
         <h1>{n.review?.corrections.length ? t("rewriting") : t("noteMaking")}</h1>
-        <p className="muted center">{t("takesSeconds")}</p>
       </div>
     );
   if (n.status === "failed")
@@ -50,7 +49,6 @@ export default function Review({ n, me, token, names }: { n: SavedNote; me: stri
 
   return (
     <div className="stack">
-      {!n.review?.final && <div className="stepbar">{t("step4of4")}</div>}
       <NoteDoc n={n} />
       {n.review?.final ? (
         <>
@@ -68,18 +66,16 @@ export default function Review({ n, me, token, names }: { n: SavedNote; me: stri
         <section className="card stack sticky-bottom">
           {!fixing ? (
             <>
-              <p className="center"><strong>{t("isCorrect")}</strong></p>
-              <button className="primary big" disabled={busy} onClick={() => send("confirm")}>✓ {t("yesCorrect")}</button>
-              <button className="big" onClick={() => setFixing(true)}>✎ {t("somethingWrong")}</button>
+              <button className="primary giant" disabled={busy} onClick={() => send("confirm")}>✓ {t("yesCorrect")}</button>
+              <button className="big" onClick={() => setFixing(true)}>{t("somethingWrong")}</button>
             </>
           ) : (
             <>
               <label>{t("whatWrong")}
-                <textarea rows={3} value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder={t("whatWrongEg")} />
+                <textarea rows={3} value={text} onChange={(e) => setText(e.target.value)} maxLength={500} />
               </label>
-              <button className="primary big" disabled={busy || !text.trim()} onClick={() => send("correct")}>{t("sendCorrection")}</button>
+              <button className="primary giant" disabled={busy || !text.trim()} onClick={() => send("correct")}>{t("sendCorrection")}</button>
               <button className="linkish" onClick={() => setFixing(false)}>{t("cancel")}</button>
-              <p className="muted small-text">{t("correctionHint")}</p>
             </>
           )}
           {err && <div className="error" role="alert">{err}</div>}
