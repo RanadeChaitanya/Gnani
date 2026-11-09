@@ -8,6 +8,7 @@ import { NoteIcon, WaveIcon } from "./components/icons";
 import { setLang, useT } from "./lib/i18n";
 import Home from "./pages/Home";
 import Notes from "./pages/Notes";
+import { RecordDetail, RecordList } from "./pages/Records";
 import NoteDetail from "./pages/NoteDetail";
 import Privacy from "./pages/Privacy";
 import RoomPage from "./pages/Room";
@@ -35,6 +36,8 @@ function App() {
           <Route path="/room/:code" element={<RoomPage />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/notes/:id" element={<NoteDetail />} />
+          <Route path="/records" element={<RecordList />} />
+          <Route path="/records/:name" element={<RecordDetail />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

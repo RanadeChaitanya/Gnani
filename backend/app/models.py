@@ -67,6 +67,7 @@ class Segment(SQLModel, table=True):
     audio_ms: int
     latency_ms: int
     possible_echo: bool = False
+    lang_code: str = ""  # detected per segment (Prisma v3), else the speaker's chosen language
 
 
 class Note(SQLModel, table=True):

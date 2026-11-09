@@ -60,7 +60,7 @@ async def main() -> None:
         lat = [x for r in rows for x in r["lat"] if x]
         print(f"{name}: WER {mean(r['wer'] for r in rows):.3f}  CER {mean(r['cer'] for r in rows):.3f}  "
               f"latency p50 {sorted(lat)[len(lat) // 2] if lat else '-'} ms  first={rows[0]['first']} types={rows[0]['types']}")
-    (RESULTS / "v3_vs_v4.json").write_text(json.dumps([r for x in res if not isinstance(x, BaseException) for r in x],
+    (RESULTS / "stream_endpoint_ab.json").write_text(json.dumps([r for x in res if not isinstance(x, BaseException) for r in x],
                                                       ensure_ascii=False, indent=1), encoding="utf-8")
     for name, rows in zip(URLS, res):
         if not isinstance(rows, BaseException):

@@ -149,6 +149,7 @@ function CallHome({ profile }: { profile: Profile }) {
       {!picking && (
         <div className="row center small-text">
           <button className="linkish" disabled={busy} onClick={() => call(null)}>{t("soloShort")}</button>
+          <Link to="/records" className="muted">{t("records")}</Link>
           <Link to="/privacy" className="muted">{t("privacy")}</Link>
         </div>
       )}

@@ -127,6 +127,7 @@ async def test_two_speakers_ordered_captions_and_notes(server: str, fake: FakeGn
         await wait_for(lambda: la.of("note_ready") and lb.of("note_ready"))
         note = la.of("note_ready")[0]["note"]
         assert note["status"] == "ready" and note["kind"] == "quick" and len(note["transcript"]) == 3
+        assert all(t["lang_code"] for t in note["transcript"])  # each line keeps its detected language
         assert note["faithfulness"]["flag_count"] == 0
 
         r = await c.post(f"http://{server}/api/rooms/{code}/end", headers=H(guest))

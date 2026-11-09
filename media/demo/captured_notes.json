@@ -1,0 +1,131 @@
+{
+  "notes": [
+    {
+      "review": {
+        "by": { "d31be37eec634438bc972e674e4ed823": "confirmed", "74ef04f5ceed4d2a879764d93d5f3dff": "confirmed" },
+        "final": true,
+        "corrections": []
+      },
+      "id": "5d8e2fd47e034e4d89a9edcc24e87d4a",
+      "room_code": "NPQ83K",
+      "kind": "final",
+      "status": "ready",
+      "created_at": "2026-11-09T10:34:58.888435+00:00",
+      "model": "deepseek-chat",
+      "error": "",
+      "participants": ["Jugaadu Lal", "Gupta ji"],
+      "langs": ["auto"],
+      "note": {
+        "title": "Diwali order — sugar and oil, Gupta ji",
+        "note_language": "en",
+        "conversation_type": "order",
+        "purpose": "Jugaadu Lal orders Diwali sugar and oil from Gupta ji",
+        "outcome": "Five cartons sugar and two tins oil agreed; delivery Friday",
+        "summary": ["Sugar priced at usual rate per carton", "Oil ordered as two tins", "Delivery fixed for Friday"],
+        "parties": [
+          { "name": "Jugaadu Lal", "role": "customer" },
+          { "name": "Gupta ji", "role": "shopkeeper" }
+        ],
+        "items": [
+          {
+            "name": "Sugar (cheeni)",
+            "quantity": 5,
+            "unit": "carton",
+            "unit_price": 1600,
+            "total_price": null,
+            "shop": null,
+            "heard_as": null,
+            "evidence": [1, 2]
+          },
+          {
+            "name": "Oil (tel)",
+            "quantity": 2,
+            "unit": "tin",
+            "unit_price": 700,
+            "total_price": null,
+            "shop": null,
+            "heard_as": null,
+            "evidence": [3, 4]
+          }
+        ],
+        "stated_totals": [],
+        "locations": [],
+        "schedule": [{ "what": "Delivery of sugar and oil", "when": "Friday", "where": null, "evidence": [4, 5] }],
+        "decisions": [
+          { "text": "Five cartons sugar at 1,600 rupees per carton", "evidence": [1, 2] },
+          { "text": "Two tins oil at 700 rupees per tin", "evidence": [3, 4] },
+          { "text": "Delivery on Friday", "evidence": [4, 5] }
+        ],
+        "action_items": [
+          {
+            "task": "Deliver five cartons sugar and two tins oil",
+            "owner": "Gupta ji",
+            "due": "Friday",
+            "evidence": [4, 5]
+          }
+        ],
+        "uncertain_spans": [
+          {
+            "text": "Oil: is 700 rupees the price per tin or for both tins?",
+            "reason": "Price stated alongside quantity of two tins, unit unclear",
+            "evidence": [4]
+          }
+        ],
+        "conversation_languages": ["Hindi", "Marathi", "English"]
+      },
+      "costs": {
+        "by_shop": [{ "shop": null, "subtotal": 9400, "priced": 2, "unpriced": 0 }],
+        "grand_total": 9400,
+        "unpriced_items": 0,
+        "stated_totals": []
+      },
+      "faithfulness": { "flag_count": 0, "flags": [], "checked_count": 9 },
+      "transcript": [
+        {
+          "seq": 1,
+          "participant_id": "d31be37eec634438bc972e674e4ed823",
+          "name": "Jugaadu Lal",
+          "text": "नमस्ते गुप्ता जी, दिवाली के लिए पाँच कार्टन चीनी भेजिये।",
+          "started_at": 1794220467.7802293,
+          "lang_code": "hi-IN"
+        },
+        {
+          "seq": 2,
+          "participant_id": "74ef04f5ceed4d2a879764d93d5f3dff",
+          "name": "Gupta ji",
+          "text": "Sure Lal ji, sugar is 1,600 rupees per carton, the usual rate.",
+          "started_at": 1794220475.520482,
+          "lang_code": "en-IN"
+        },
+        {
+          "seq": 3,
+          "participant_id": "d31be37eec634438bc972e674e4ed823",
+          "name": "Jugaadu Lal",
+          "text": "आणि दोन डबे तेल पण पाठवा.",
+          "started_at": 1794220480.368515,
+          "lang_code": "mr-IN"
+        },
+        {
+          "seq": 4,
+          "participant_id": "74ef04f5ceed4d2a879764d93d5f3dff",
+          "name": "Gupta ji",
+          "text": "ठीक है, 2 tin तेल 700 रुपये का एक डिलीवरी फ्राइडे को।",
+          "started_at": 1794220486.9660218,
+          "lang_code": "hi-IN"
+        },
+        {
+          "seq": 5,
+          "participant_id": "d31be37eec634438bc972e674e4ed823",
+          "name": "Jugaadu Lal",
+          "text": "Perfect Friday then. Thank you.",
+          "started_at": 1794220491.830015,
+          "lang_code": "en-IN"
+        }
+      ],
+      "title": "Diwali order — sugar and oil, Gupta ji",
+      "edited": false,
+      "saved_at": "2026-11-09T10:35:09.967Z"
+    }
+  ],
+  "profile": "{\"name\":\"Jugaadu Lal\",\"phone\":\"+91 98765 43210\",\"lang\":\"auto\",\"device_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXYiOiJjZTViOWVjM2M5Y2ExYTgzMGUyYmNjMDBlOTI2OTNiNSIsImV4cCI6MTc5NjgxMjQ1NX0.NUbWqzUCsT9-7UMvq0myv-Njco5RiAGHh6hVfjqKLo4\"}"
+}

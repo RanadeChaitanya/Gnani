@@ -73,7 +73,8 @@ class SttSession:
             started = ended - dur / 1000
             self.local_index += 1
             self.segments += 1
-            seg = Segment(room_id=self.room.id, participant_id=self.p.id,
+            lang = msg.get("detected_language_code") or self.p.lang_code
+            seg = Segment(lang_code=lang, room_id=self.room.id, participant_id=self.p.id,
                           upstream_segment_id=str(msg.get("segment_id") or f"{self.p.id}-{self.local_index}"),
                           local_index=self.local_index, text=text, started_at=started, ended_at=ended,
                           audio_ms=dur, latency_ms=latency)
@@ -86,7 +87,7 @@ class SttSession:
                               "local_index": seg.local_index, "audio_duration_ms": dur, "latency_ms": latency})
             self.hub.add_segment({
                 "id": seg.id, "participant_id": self.p.id, "name": self.p.display_name, "text": text,
-                "lang_code": msg.get("detected_language_code") or self.p.lang_code, "started_at": started, "ended_at": ended,
+                "lang_code": lang, "started_at": started, "ended_at": ended,
                 "upstream_segment_id": seg.upstream_segment_id, "latency_ms": latency})
         elif kind == "error":
             log.warning("upstream error", extra={"data": {"participant": self.p.id}})

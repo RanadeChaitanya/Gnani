@@ -41,7 +41,7 @@ def room_segments(room_id: str) -> list[dict[str, Any]]:
                                             Segment.possible_echo == False)  # noqa: E712
                       .order_by(col(Segment.seq))).all()
     return [{"seq": r.seq, "participant_id": r.participant_id, "name": names.get(r.participant_id, "?"),
-             "text": r.text, "started_at": r.started_at} for r in rows]
+             "text": r.text, "started_at": r.started_at, "lang_code": r.lang_code} for r in rows]
 
 
 def note_payload(note: Note, room: Room) -> dict[str, Any]:

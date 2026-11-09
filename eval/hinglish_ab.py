@@ -1,4 +1,4 @@
-"""Which Gnani setting serves Hinglish speakers best? (v2 improvement #10)
+"""Which Gnani STT setting serves Hinglish speakers best?
 
 Hinglish turns (TTS voice Poorvi, `hi-en`) through STT REST with:
   en_transcribe   lang en-IN, ITN on            (v1 default)

@@ -1,0 +1,42 @@
+[
+  [
+    "title",
+    "This is a live demo of Saar, recorded on real devices, with real-time speech recognition from Gnani's Prisma model."
+  ],
+  [
+    "problem",
+    "Every day, a kirana owner places orders with a dozen distributors, all over the phone. The order exists only inside the call. Saar turns that call into a structured, confirmed record."
+  ],
+  [
+    "arch",
+    "Here is the pipeline. Each phone captures only its own microphone. An AudioWorklet resamples it to sixteen kilohertz PCM and sends one-thousand-twenty-four-byte frames every thirty-two milliseconds over a WebSocket. Our FastAPI backend proxies the stream to Gnani's Prisma v3 endpoint, so the API key never reaches the browser. Final segments come back with a detected language code, flow through a room hub that orders them and removes echo, and appear on both phones."
+  ],
+  [
+    "dial",
+    "Jugaadu Lal calls his distributor by mobile number. The number is stored only as a keyed hash, in memory. Gupta ji's phone rings inside Saar, and transcription starts only after both people accept the consent notice."
+  ],
+  [
+    "live",
+    "Now the call is live. Jugaadu Lal speaks Hindi. Gupta ji answers in English. Then Jugaadu Lal switches to Marathi, and Prisma follows him, segment by segment, in indic auto mode, with no language picker. Partial hypotheses stream while someone speaks, and each segment commits after voice activity detection."
+  ],
+  [
+    "note",
+    "When the call ends, the transcript goes to a language model constrained by a JSON schema. Totals are computed in code, not by the model. A deterministic faithfulness check matches every number against the transcript, and anything unclear is flagged for review. Both sides confirm before the note is final."
+  ],
+  [
+    "prisma",
+    "Prisma is built for Indian phone audio. Version three supports nine Indian languages plus English, with automatic language identification on every segment. Gnani trained its Vachana speech model on over a million hours of real Indian voice data, and in our own grocery-order tests, Prisma reached ninety-four to ninety-seven percent word accuracy."
+  ],
+  [
+    "records",
+    "On a laptop, every distributor gets a living record, rebuilt from confirmed calls. Saar tracks quantities, totals, and rate changes, like sugar moving from fifteen hundred to sixteen hundred a carton. One click exports every distributor into a single Excel-ready sheet, and the WhatsApp draft is written in the language that distributor actually speaks."
+  ],
+  [
+    "future",
+    "Next on the roadmap is native call integration. A cloud telephony bridge will join ordinary phone calls, play a consent announcement to both sides, and fork the audio stream to Prisma, so a distributor won't even need the app."
+  ],
+  [
+    "close",
+    "Saar. One platform for every distributor call. Voice is never stored, and every record is confirmed by both sides. Coming soon."
+  ]
+]

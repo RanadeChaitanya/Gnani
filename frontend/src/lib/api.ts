@@ -94,7 +94,7 @@ export type NotePayload = {
   costs: Costs | null;
   faithfulness: { flag_count: number; flags: Flag[]; checked_count: number } | null;
   review: { by: Record<string, "confirmed" | "pending">; final: boolean; corrections: { name: string; text: string }[] };
-  transcript: { seq: number; participant_id: string; name: string; text: string; started_at: number }[];
+  transcript: { seq: number; participant_id: string; name: string; text: string; started_at: number; lang_code?: string }[];
 };
 
 export class ApiError extends Error {

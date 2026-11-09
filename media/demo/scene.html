@@ -1,0 +1,599 @@
+<!doctype html><meta charset="utf-8" />
+<style>
+  @font-face {
+    font-family: Inter;
+    src: url(../fonts/Inter.ttf);
+    font-weight: 100 900;
+  }
+  :root {
+    --bg: #0b1a17;
+    --bg2: #10261f;
+    --mint: #3dd6a3;
+    --mint2: #1e8f6e;
+    --ink: #eaf5f0;
+    --mute: #8fb3a6;
+    --warm: #f2b661;
+    --line: #24453b;
+  }
+  html,
+  body {
+    margin: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: Inter, "Nirmala UI", sans-serif;
+    color: var(--ink);
+  }
+  #stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+  #bgglow {
+    position: absolute;
+    left: -300px;
+    top: -400px;
+    width: 1600px;
+    height: 1600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #173e33 0%, rgba(11, 26, 23, 0) 65%);
+  }
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px;
+    opacity: 0.25;
+  }
+  .layer {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+  }
+  #lbl {
+    position: absolute;
+    left: 80px;
+    top: 56px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--mint);
+    text-transform: uppercase;
+  }
+  #brand {
+    position: absolute;
+    right: 80px;
+    top: 48px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-weight: 800;
+    font-size: 30px;
+  }
+  #brand i {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--mint2);
+    display: inline-block;
+  }
+  #prog {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 5px;
+    background: var(--mint);
+  }
+  /* title */
+  #title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  #title h1 {
+    font-size: 200px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+  #title p {
+    font-size: 40px;
+    color: var(--mute);
+    margin: 10px 0 40px;
+  }
+  .chips {
+    display: flex;
+    gap: 18px;
+  }
+  .chip {
+    padding: 14px 26px;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    font-size: 26px;
+    color: var(--ink);
+    background: #0f2420;
+    visibility: hidden;
+  }
+  /* problem */
+  #problem {
+    padding: 220px 0 0 160px;
+  }
+  .pl {
+    font-size: 64px;
+    font-weight: 700;
+    margin: 0 0 30px;
+    visibility: hidden;
+  }
+  .pl span {
+    color: var(--warm);
+  }
+  #parrow {
+    position: absolute;
+    left: 160px;
+    top: 640px;
+    font-size: 60px;
+    color: var(--mint);
+  }
+  #presult {
+    position: absolute;
+    left: 260px;
+    top: 620px;
+    font-size: 56px;
+    font-weight: 800;
+    color: var(--mint);
+    visibility: hidden;
+  }
+  /* architecture */
+  #archsvg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+  }
+  .node {
+    fill: #102923;
+    stroke: var(--mint2);
+    stroke-width: 2.5;
+  }
+  .nt {
+    fill: var(--ink);
+    font-size: 27px;
+    font-weight: 700;
+  }
+  .ns {
+    fill: var(--mute);
+    font-size: 19px;
+    font-weight: 500;
+  }
+  .link {
+    fill: none;
+    stroke: var(--mint2);
+    stroke-width: 3;
+    stroke-dasharray: 8 8;
+  }
+  .dot {
+    fill: var(--mint);
+  }
+  .atitle {
+    position: absolute;
+    left: 80px;
+    top: 150px;
+    font-size: 46px;
+    font-weight: 800;
+  }
+  .atitle span {
+    color: var(--mute);
+    font-weight: 500;
+    font-size: 30px;
+    display: block;
+    margin-top: 10px;
+  }
+  /* devices */
+  .phone {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 430px;
+    height: 900px;
+    border-radius: 64px;
+    background: #05100d;
+    box-shadow:
+      0 0 0 3px #2a4a40,
+      0 40px 90px rgba(0, 0, 0, 0.55);
+    transform-origin: 50% 50%;
+    visibility: hidden;
+  }
+  .phone .screen {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 390px;
+    height: 844px;
+    border-radius: 46px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .phone img {
+    width: 390px;
+    height: 844px;
+    display: block;
+  }
+  .notch {
+    position: absolute;
+    left: 165px;
+    top: 30px;
+    width: 100px;
+    height: 26px;
+    border-radius: 14px;
+    background: #05100d;
+  }
+  .plabel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -58px;
+    text-align: center;
+    font-size: 24px;
+    color: var(--mute);
+    font-weight: 600;
+  }
+  .laptop {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1180px;
+    height: 780px;
+    visibility: hidden;
+    transform-origin: 0 0;
+  }
+  .lscreen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1152px;
+    height: 720px;
+    border: 14px solid #05100d;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow:
+      0 0 0 3px #2a4a40,
+      0 40px 90px rgba(0, 0, 0, 0.55);
+  }
+  .lscreen img {
+    width: 1152px;
+    height: 720px;
+    display: block;
+  }
+  .lbase {
+    position: absolute;
+    left: -60px;
+    top: 746px;
+    width: 1300px;
+    height: 26px;
+    border-radius: 0 0 30px 30px;
+    background: #1d3a32;
+  }
+  .co {
+    position: absolute;
+    padding: 16px 22px;
+    border-radius: 14px;
+    background: #0f2420;
+    border: 2px solid var(--mint2);
+    font-size: 23px;
+    font-weight: 600;
+    max-width: 300px;
+    visibility: hidden;
+    line-height: 1.3;
+  }
+  .co b {
+    color: var(--mint);
+    display: block;
+    font-size: 17px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .co .mono,
+  .mono {
+    font-family: Consolas, "Cascadia Mono", monospace;
+  }
+  #speed {
+    position: absolute;
+    left: 1540px;
+    width: 330px;
+    line-height: 1.4;
+    top: 880px;
+    font-size: 20px;
+    color: var(--mute);
+    visibility: hidden;
+  }
+  #log {
+    position: absolute;
+    left: 1560px;
+    top: 160px;
+    width: 320px;
+    font-family: Consolas, "Cascadia Mono", monospace;
+    font-size: 16px;
+    color: #a8d9c6;
+    visibility: hidden;
+  }
+  #log .ln {
+    background: #0c201b;
+    border-left: 3px solid var(--mint);
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    white-space: pre-wrap;
+    opacity: 0;
+  }
+  /* prisma */
+  #prisma {
+    padding: 170px 0 0 120px;
+  }
+  #prisma h2 {
+    font-size: 84px;
+    margin: 0;
+    font-weight: 800;
+  }
+  #prisma h3 {
+    font-size: 32px;
+    color: var(--mute);
+    margin: 12px 0 50px;
+    font-weight: 500;
+  }
+  .fact {
+    display: flex;
+    gap: 26px;
+    align-items: baseline;
+    font-size: 40px;
+    font-weight: 600;
+    margin-bottom: 34px;
+    visibility: hidden;
+  }
+  .fact em {
+    font-style: normal;
+    color: var(--mint);
+    font-size: 64px;
+    font-weight: 800;
+    min-width: 300px;
+  }
+  .src {
+    position: absolute;
+    left: 120px;
+    bottom: 60px;
+    font-size: 18px;
+    color: var(--mute);
+  }
+  #pwave {
+    position: absolute;
+    right: 120px;
+    top: 300px;
+  }
+  /* future */
+  .badge {
+    position: absolute;
+    left: 80px;
+    top: 150px;
+    padding: 10px 20px;
+    border: 2px dashed var(--warm);
+    color: var(--warm);
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  #fsvg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+  }
+  .fn {
+    opacity: 0;
+  }
+  .fbox {
+    fill: #102923;
+    stroke: var(--mint2);
+    stroke-width: 2.5;
+  }
+  .ft {
+    fill: var(--ink);
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .fs {
+    fill: var(--mute);
+    font-size: 20px;
+  }
+  /* close */
+  #close {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: radial-gradient(circle at 50% 45%, #16423a, #0b1a17 70%);
+  }
+  #close h1 {
+    font-size: 220px;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+  .cl {
+    font-size: 40px;
+    color: var(--mute);
+    margin: 8px;
+    visibility: hidden;
+  }
+  .cl.big {
+    color: var(--ink);
+    font-size: 52px;
+    font-weight: 700;
+  }
+  .pill {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 18px 40px;
+    border-radius: 999px;
+    background: var(--mint);
+    color: #06231a;
+    font-weight: 800;
+    font-size: 44px;
+  }
+</style>
+<div id="stage">
+  <div id="bgglow"></div>
+  <div class="grid"></div>
+  <div id="title" class="layer">
+    <h1>Saar</h1>
+    <p>Live demo · the real app, end to end · real-time speech recognition by Gnani Prisma</p>
+    <div class="chips">
+      <div class="chip">Prisma v3.0 streaming STT</div>
+      <div class="chip">Hindi · English · Marathi</div>
+      <div class="chip">Confirmed by both sides</div>
+    </div>
+  </div>
+  <div id="problem" class="layer">
+    <div class="pl"><span>12</span> distributors per shop</div>
+    <div class="pl">Every order placed <span>by phone</span></div>
+    <div class="pl">The order lives <span>only inside the call</span></div>
+    <div class="pl" style="visibility: hidden">&nbsp;</div>
+    <div id="parrow">→</div>
+    <div id="presult">A structured, confirmed record</div>
+  </div>
+  <div id="arch" class="layer">
+    <div class="atitle">From microphone to confirmed record<span>Two pipelines: live speech, then the note</span></div>
+    <svg id="archsvg" viewBox="0 0 1920 1080"></svg>
+  </div>
+  <div class="co" id="c1" style="left: 40px; top: 300px">
+    <b>Identity</b>Call by mobile number. Stored as an <span class="mono">HMAC</span> hash, in memory only.
+  </div>
+  <div class="co" id="c2" style="left: 1530px; top: 300px">
+    <b>Signalling</b>Ring over a persistent <span class="mono">/ws/inbox</span> WebSocket.
+  </div>
+  <div class="co" id="c3" style="left: 1530px; top: 560px">
+    <b>Consent</b>Capture starts only after both accept. Either side can stop.
+  </div>
+  <div class="co" id="c4" style="left: 40px; top: 250px"><b>Detected</b><span class="mono">hi-IN</span> · Hindi</div>
+  <div class="co" id="c5" style="left: 40px; top: 420px"><b>Detected</b><span class="mono">en-IN</span> · English</div>
+  <div class="co" id="c6" style="left: 40px; top: 590px">
+    <b>Detected</b><span class="mono">mr-IN</span> · Marathi, mid-call
+  </div>
+  <div class="co" id="c7" style="left: 40px; top: 760px">
+    <b>Streaming</b>Partials while speaking, final segment after VAD.
+  </div>
+  <div class="co" id="c8" style="left: 40px; top: 250px">
+    <b>Schema</b>LLM output validated against a strict JSON schema.
+  </div>
+  <div class="co" id="c9" style="left: 40px; top: 470px">
+    <b>Totals in code</b><span class="mono">₹8,000 + ₹1,400 = ₹9,400</span>
+  </div>
+  <div class="co" id="c10" style="left: 1530px; top: 300px">
+    <b>Faithfulness</b>Every number matched to the transcript. Unclear items flagged.
+  </div>
+  <div class="co" id="c11" style="left: 1530px; top: 560px"><b>Two-sided</b>Final only when both confirm.</div>
+  <div id="log" class="layer">
+    <div class="ln">{"type":"partial", "text":"नमस्ते गुप्ता जी…"}</div>
+    <div class="ln">{"type":"transcript", "detected_language_code":"hi-IN"}</div>
+    <div class="ln">{"type":"transcript", "detected_language_code":"en-IN"}</div>
+    <div class="ln">{"type":"transcript", "detected_language_code":"mr-IN"}</div>
+    <div class="ln">segment → hub → seq 4 → both phones</div>
+  </div>
+  <div id="speed">Shown at 1.8× · real Prisma output · scripted synthetic voices into the app's mic input</div>
+  <div id="prisma" class="layer">
+    <h2>Gnani Prisma</h2>
+    <h3>Streaming speech-to-text, built for Indian phone audio</h3>
+    <div class="fact"><em>9 + 1</em>Indian languages plus English (v3.0)</div>
+    <div class="fact"><em>auto</em>language identified on every segment</div>
+    <div class="fact"><em>1M+ hrs</em>of Indian voice data behind Vachana STT</div>
+    <div class="fact"><em>94–97%</em>word accuracy in our grocery-order test</div>
+    <svg id="pwave" width="520" height="320"></svg>
+    <div class="src">
+      Vendor-reported: Gnani (Vachana STT launch, Dec 2025; Prisma v3.0 release). Accuracy: our own test, 32 items,
+      synthetic audio.
+    </div>
+  </div>
+  <div class="co" id="r1" style="left: 560px; top: 920px; max-width: 380px">
+    <b>Rate history</b>Sugar ₹1,500 → ₹1,600 per carton ▲
+  </div>
+  <div class="co" id="r2" style="left: 1000px; top: 920px; max-width: 380px">
+    <b>Export</b>One sheet for every distributor · CSV with UTF-8 BOM, opens in Excel
+  </div>
+  <div class="co" id="r3" style="left: 1440px; top: 920px; max-width: 420px">
+    <b>WhatsApp draft</b>Written in मराठी, the language they spoke
+  </div>
+  <div id="future" class="layer">
+    <div class="badge">CONCEPT · ON THE ROADMAP · NOT YET BUILT</div>
+    <svg id="fsvg" viewBox="0 0 1920 1080">
+      <g class="fn">
+        <circle class="ring" cx="330" cy="560" r="40" fill="none" stroke="#3DD6A3" stroke-width="3" />
+        <circle class="ring" cx="330" cy="560" r="40" fill="none" stroke="#3DD6A3" stroke-width="3" />
+        <circle class="ring" cx="330" cy="560" r="40" fill="none" stroke="#3DD6A3" stroke-width="3" />
+        <rect x="270" y="460" width="120" height="200" rx="22" fill="#05100D" stroke="#2A4A40" stroke-width="4" />
+        <text x="330" y="720" text-anchor="middle" class="ft">Ordinary call</text>
+        <text x="330" y="752" text-anchor="middle" class="fs">any phone, no app</text>
+      </g>
+      <g class="fn">
+        <rect class="fbox" x="560" y="480" width="300" height="160" rx="16" />
+        <text x="710" y="550" text-anchor="middle" class="ft">Telephony bridge</text>
+        <text x="710" y="590" text-anchor="middle" class="fs">cloud SIP trunk</text>
+      </g>
+      <g class="fn">
+        <rect class="fbox" x="960" y="480" width="300" height="160" rx="16" />
+        <text x="1110" y="550" text-anchor="middle" class="ft">Consent prompt</text>
+        <text x="1110" y="590" text-anchor="middle" class="fs">announced to both sides</text>
+      </g>
+      <g class="fn">
+        <rect class="fbox" x="1360" y="480" width="300" height="160" rx="16" />
+        <text x="1510" y="550" text-anchor="middle" class="ft">Media fork</text>
+        <text x="1510" y="590" text-anchor="middle" class="fs">→ Prisma streaming</text>
+      </g>
+      <g class="fn">
+        <rect class="fbox" x="1360" y="760" width="300" height="130" rx="16" />
+        <text x="1510" y="835" text-anchor="middle" class="ft">Same record + sheet</text>
+        <path d="M1510 640V760" stroke="#1E8F6E" stroke-width="3" stroke-dasharray="8 8" />
+      </g>
+      <path
+        d="M390 560H560M860 560H960M1260 560H1360"
+        stroke="#1E8F6E"
+        stroke-width="3"
+        stroke-dasharray="8 8"
+        fill="none"
+      />
+      <circle class="fdot" cx="330" cy="560" r="8" fill="#3DD6A3" />
+      <circle class="fdot" cx="330" cy="560" r="8" fill="#3DD6A3" />
+      <circle class="fdot" cx="330" cy="560" r="8" fill="#3DD6A3" />
+      <circle class="fdot" cx="330" cy="560" r="8" fill="#3DD6A3" />
+      <circle class="fdot" cx="330" cy="560" r="8" fill="#3DD6A3" />
+      <circle class="fdot" cx="330" cy="560" r="8" fill="#3DD6A3" />
+    </svg>
+  </div>
+  <div id="close" class="layer">
+    <h1>Saar</h1>
+    <div class="cl big">One platform for every distributor call.</div>
+    <div class="cl">Voice never stored · confirmed by both sides · powered by Gnani Prisma</div>
+    <div class="cl"><span class="pill">Coming soon</span></div>
+  </div>
+  <div id="lbl"></div>
+  <div id="brand"><i></i>Saar</div>
+  <div id="prog"></div>
+</div>
+<script>
+  const pw = document.getElementById("pwave");
+  for (let i = 0; i < 26; i++) {
+    const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    r.setAttribute("x", i * 20);
+    r.setAttribute("width", 10);
+    r.setAttribute("rx", 5);
+    r.setAttribute("fill", i % 4 ? "#1E8F6E" : "#3DD6A3");
+    pw.appendChild(r);
+  }
+</script>
+<script src="scene.js"></script>
