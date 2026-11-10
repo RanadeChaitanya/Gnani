@@ -1,4 +1,4 @@
-import { ConnectionQuality, Room, RoomEvent, Track } from "livekit-client";
+import { AudioPresets, ConnectionQuality, Room, RoomEvent, Track } from "livekit-client";
 
 /** Join the audio-only app-to-app call, publishing OUR mic track (the one transcription also uses). */
 export async function joinCall(
@@ -19,7 +19,8 @@ export async function joinCall(
   // iOS may block playback if the tap's activation expired during the awaits below; the UI offers a tap
   room.on(RoomEvent.AudioPlaybackStatusChanged, () => onAudioBlocked(!room.canPlaybackAudio));
   await room.connect(url, token);
-  await room.localParticipant.publishTrack(mic, { source: Track.Source.Microphone });
+  // Opus at 48 kbps with redundant packets (RED) for loss; DTX off so word starts are never clipped by silence suppression
+  await room.localParticipant.publishTrack(mic, { source: Track.Source.Microphone, audioPreset: AudioPresets.music, red: true, dtx: false });
   await room.startAudio().catch(() => {});
   onAudioBlocked(!room.canPlaybackAudio);
   return room;
