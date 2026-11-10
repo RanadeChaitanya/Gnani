@@ -148,7 +148,9 @@ function Room({ code }: { code: string }) {
       })
       .catch(() => setInfo("Voice call couldn't connect — captions still work."));
     return () => void (cancelled = true);
-  }, [mediaReady, session.call, cfg]);
+    // keyed on the token string: loadSession() returns a new object every render, which cancelled each join
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaReady, session.call?.token, cfg]);
 
   // ---------- my transcription pipeline ----------
   const stopStt = useCallback(() => {
