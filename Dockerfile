@@ -14,6 +14,8 @@ COPY backend/app ./app
 COPY --from=web /out ./app/static
 RUN pip install --no-cache-dir -e .
 ENV DATABASE_URL=sqlite:////data/saar.db PORT=8000
+# hosts without a mounted volume (e.g. Render free) still need writable data folders
+RUN mkdir -p /data /app/data
 VOLUME /data
 EXPOSE 8000
 HEALTHCHECK CMD python -c "import urllib.request,os;urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/api/health')"

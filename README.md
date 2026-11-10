@@ -135,6 +135,8 @@ cd ../backend && .venv/bin/uvicorn app.main:app --port 8000
 docker compose up --build     # one container, one origin: http://localhost:8000
 ```
 
+**Render (always-on hosting)**: `render.yaml` is a Render Blueprint. In Render, choose **New → Blueprint**, select this repository, and paste the secret values when asked (Gnani key, DeepSeek key, LiveKit URL, key and secret).
+
 ## Configuration
 All settings are environment variables; see [.env.example](.env.example) for the full list.
 
