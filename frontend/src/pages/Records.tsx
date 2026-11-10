@@ -38,7 +38,7 @@ export function RecordList() {
             <Link key={l.name} to={`/records/${encodeURIComponent(l.name)}`} className="note-row">
               <div className="grow">
                 <div className="note-title">{l.name}</div>
-                <div className="muted small-text">{r.calls} {t("calls")} · {t("lastCall")} {day(r.lastCall)}</div>
+                <div className="muted small-text">{t("calls")}: {r.calls} · {t("lastCall")} {day(r.lastCall)}</div>
               </div>
               {r.spent > 0 && <strong>{rupees(r.spent)}</strong>}
             </Link>

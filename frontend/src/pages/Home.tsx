@@ -144,6 +144,7 @@ function CallHome({ profile }: { profile: Profile }) {
               <span className={`status ${isFinal(n) ? "ok" : "draft"}`}>{isFinal(n) ? t("confirmed") : t("draft")}</span>
             </Link>
           ))}
+          <Link to="/records" className="btn big">{t("records")}</Link>
         </div>
       )}
       {!picking && (

@@ -83,10 +83,13 @@ export function spokenLang(l: Ledger): WaLang {
   return top === "hi" || top === "mr" ? top : "en";
 }
 
+/** "Gupta ji" stays "Gupta ji": add the honorific only when the saved name lacks it. */
+const ji = (n: string, h: string) => (/\s(ji|जी)$/i.test(n.trim()) ? n.trim() : `${n.trim()} ${h}`);
+
 const WA: Record<WaLang, { hi: (n: string) => string; order: (d: string) => string; total: string; check: string; ask: string }> = {
-  en: { hi: (n) => `Namaste ${n} ji,`, order: (d) => `Order from our call on ${d}:`, total: "Total", check: "Please check", ask: "Please confirm this order." },
-  hi: { hi: (n) => `नमस्ते ${n} जी,`, order: (d) => `${d} की कॉल का ऑर्डर:`, total: "कुल", check: "कृपया जाँच लें", ask: "कृपया इस ऑर्डर की पुष्टि करें।" },
-  mr: { hi: (n) => `नमस्कार ${n} जी,`, order: (d) => `${d} च्या कॉलची ऑर्डर:`, total: "एकूण", check: "कृपया तपासा", ask: "कृपया या ऑर्डरची पुष्टी करा." },
+  en: { hi: (n) => `Namaste ${ji(n, "ji")},`, order: (d) => `Order from our call on ${d}:`, total: "Total", check: "Please check", ask: "Please confirm this order." },
+  hi: { hi: (n) => `नमस्ते ${ji(n, "जी")},`, order: (d) => `${d} की कॉल का ऑर्डर:`, total: "कुल", check: "कृपया जाँच लें", ask: "कृपया इस ऑर्डर की पुष्टि करें।" },
+  mr: { hi: (n) => `नमस्कार ${ji(n, "जी")},`, order: (d) => `${d} च्या कॉलची ऑर्डर:`, total: "एकूण", check: "कृपया तपासा", ask: "कृपया या ऑर्डरची पुष्टी करा." },
 };
 
 /** A ready-to-send WhatsApp message for this person, about their latest call, in their language. */

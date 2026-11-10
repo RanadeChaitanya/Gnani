@@ -33,7 +33,8 @@ it("drafts in the language the person spoke, and links to their WhatsApp", () =>
   const l = ledgers([a, b], "Lal")[0];
   expect(spokenLang(l)).toBe("mr");
   const mr = waDraft(l, "Lal", "mr");
-  expect(mr).toContain("नमस्कार Gupta ji जी");
+  expect(mr).toContain("नमस्कार Gupta ji,");
+  expect(waDraft({ ...l, name: "Mehta" }, "Lal", "en")).toContain("Namaste Mehta ji,");
   expect(mr).toContain("• Sugar — 4 cartons — ₹6,400");
   expect(waDraft(l, "Lal", "en")).toContain("Please confirm this order.");
   expect(waLink("98765 43210", "hi there")).toBe("https://wa.me/919876543210?text=hi%20there");
